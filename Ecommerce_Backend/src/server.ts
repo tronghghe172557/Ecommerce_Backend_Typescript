@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'
+import Database from './db/init.mongodb'
 
 const app = express()
 // Middleware bảo mật HTTP headers
@@ -17,6 +18,8 @@ app.use(compression())
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World')
 })
+
+Database.getInstance()
 
 // Xử lý lỗi
 app.use((err: Error, req: Request, res: Response) => {
