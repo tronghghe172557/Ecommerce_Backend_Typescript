@@ -15,7 +15,11 @@ app.use(morgan('dev'))
 // Middleware nén dữ liệu response
 app.use(compression())
 
+//
+app.use(express.json()) // Middleware này giúp Express parse JSON từ request body.
+app.use(express.urlencoded({ extended: true })) // Middleware này giúp Express parse URL encoded data từ request body.
 
+// connect to MongoDB
 Database.getInstance()
 
 // Route cơ bản

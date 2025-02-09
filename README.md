@@ -17,7 +17,7 @@ This is a backend project for an e-commerce application built with Node.js and T
     ```
 2. Navigate to the project directory:
     ```sh
-    cd ecommerce_backend_typescript/Ecommerce_Backend
+    cd ecommerce_backend_typescript
     ```
 3. Install dependencies:
     ```sh
@@ -37,7 +37,7 @@ This is a backend project for an e-commerce application built with Node.js and T
 ## Folder Structure
 
 ```
-Ecommerce_Backend/
+Ecommerce_Backend_Typescript/
 ├── dist/                   # Compiled output
 ├── node_modules/           # Node.js modules
 ├── src/                    # Source files
@@ -53,6 +53,26 @@ Ecommerce_Backend/
 ├── tsconfig.json           # TypeScript configuration
 └── README.md               # Project documentation
 ```
+
+## Using Bruno
+
+Bruno is used in this project for API testing. Below are the steps to use Bruno:
+
+1. Install Bruno from the official website or via npm:
+    ```sh
+    npm install -g brunorc
+    ```
+
+2. Open Bruno and import the collection from the [bruno.json](http://_vscodecontentref_/4) file.
+
+3. You can find example requests in the [shop](http://_vscodecontentref_/5) and [test](http://_vscodecontentref_/6) directories. For example, to test the sign-up API, use the [signUp.bru](http://_vscodecontentref_/7) file:
+    ```sh
+    bruno run docs/api/shop/signUp.bru
+    ```
+
+4. To run all tests in the [test](http://_vscodecontentref_/8) directory:
+    ```sh
+    bruno run docs/api/test/
 
 ## License
 
