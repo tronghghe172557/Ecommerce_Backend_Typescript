@@ -3,6 +3,7 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'
 import Database from './db/init.mongodb'
+import router from './routes/index'
 
 const app = express()
 // Middleware bảo mật HTTP headers
@@ -14,12 +15,11 @@ app.use(morgan('dev'))
 // Middleware nén dữ liệu response
 app.use(compression())
 
-// Route cơ bản
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World')
-})
 
 Database.getInstance()
+
+// Route cơ bản
+app.use('', router)
 
 // Xử lý lỗi
 app.use((err: Error, req: Request, res: Response) => {
