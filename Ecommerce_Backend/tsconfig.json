@@ -9,6 +9,8 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "baseUrl": ".", // Đường dẫn base cho các import
     "paths": {
+      // The '~' alias is used to refer to the root directory or the 'src' directory of the project.
+      // It is configured in the project's module resolution settings (e.g., tsconfig.json or webpack.config.js).
       "~/*": ["src/*"] // Đường dẫn tương đối cho các import (alias)
     }
   },
