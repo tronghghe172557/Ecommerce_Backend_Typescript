@@ -1,7 +1,6 @@
 import express from 'express'
-// import { Request, Response } from 'express'
+import AccessController from '~/controllers/access.controller'
 const router = express.Router()
 
-router.post('/shop/login', () => {})
-
+router.post('/shop/login', AccessController.signUp)
 export default router
