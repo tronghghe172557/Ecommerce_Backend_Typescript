@@ -1,7 +1,13 @@
 import express from 'express'
-import router from './access'
-const routerV2 = express.Router()
+import access from './access'
+import { apiKey, permission } from '~/utils'
+const indexRouter = express.Router()
 
-routerV2.use('/v1/api', router)
+// check api key
+indexRouter.use(apiKey)
+// check permission
+indexRouter.use(permission('0000'))
 
-export default routerV2
+indexRouter.use('/v1/api', access)
+
+export default indexRouter

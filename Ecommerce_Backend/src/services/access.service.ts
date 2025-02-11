@@ -75,8 +75,7 @@ class AccessService {
         status: 400
       }
     } catch (error) {
-      if (error instanceof Error)
-        console.log(error.message)
+      if (error instanceof Error) console.log(error.message)
       return {
         code: 'XXX',
         message: 'Error message',

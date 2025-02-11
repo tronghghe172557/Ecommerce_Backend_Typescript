@@ -17,7 +17,7 @@ const createKeyTokenPair = async <T extends object>(
   privateKey: string
 ): Promise<IToken<T> | null> => {
   try {
-    const accessToken = jwt.sign(payload, publicKey, { algorithm: 'RS256', expiresIn: '2 days' })
+    const accessToken = jwt.sign(payload, publicKey, { expiresIn: '2 days' })
 
     const refreshToken = await jwt.sign(payload, privateKey, {
       expiresIn: '7 days'
