@@ -25,12 +25,18 @@ Database.getInstance()
 // Route cơ bản
 app.use('', indexRouter)
 
-// Xử lý lỗi
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.status(500).json({ message: 'Lỗi rồi!' })
+// func handle error
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  const statusCode = 500
+  res.status(statusCode).json({
+    status: 'error',
+    code: statusCode,
+    stack: error.stack,
+    message: error.message || 'Internal Server Error in app'
+  })
 })
 
-// Chạy server 
+// Chạy server
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
