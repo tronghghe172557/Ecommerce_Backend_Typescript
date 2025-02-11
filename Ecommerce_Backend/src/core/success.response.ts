@@ -19,7 +19,7 @@ class SussesResponse<T> {
     this.metadata = metadata
   }
 
-  send(): SuccessResponseBody<T> {
+  send(): SuccessResponseBody<T> { // trả về với dữ liệu có kiểu SuccessResponseBody
     if (Array.isArray(this.data)) {
       return {
         message: this.message,
