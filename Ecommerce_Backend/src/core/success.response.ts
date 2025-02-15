@@ -1,7 +1,6 @@
-import { SuccessResponseBody } from '~/types/index'
 import { HttpStatusCode } from '~/utils/http-status.utils'
 import { Pagination, Sorting } from '~/types/index'
-
+import { Response } from 'express'
 class SussesResponse<T> {
   public message?: string
   public statusCode: HttpStatusCode
@@ -19,20 +18,20 @@ class SussesResponse<T> {
     this.metadata = metadata
   }
 
-  send(): SuccessResponseBody<T> {
-    // trả về với dữ liệu có kiểu SuccessResponseBody
+  send(res: Response): Response {
     if (Array.isArray(this.data)) {
-      return {
+      return res.status(this.statusCode).json({
         message: this.message,
         statusCode: this.statusCode,
         data: this.data,
         metadata: this.metadata!
-      } as SuccessResponseBody<T>
-    } else {
-      return {
-        data: this.data
-      } as SuccessResponseBody<T>
+      })
     }
+    return res.status(this.statusCode).json({
+      message: this.message,
+      statusCode: this.statusCode,
+      data: this.data
+    })
   }
 }
 
