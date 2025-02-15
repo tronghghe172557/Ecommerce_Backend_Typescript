@@ -66,6 +66,7 @@ class AccessService {
       }
     }
 
+    // ném ra 1 ngoại lệ
     throw new BadRequestResponse('Error: Sign up failed')
   }
 }
