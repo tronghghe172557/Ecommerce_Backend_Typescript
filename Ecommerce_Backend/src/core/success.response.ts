@@ -1,5 +1,5 @@
 import { SuccessResponseBody } from '~/types/index'
-import { HttpStatusCode } from '~/utils/index'
+import { HttpStatusCode } from '~/utils/http-status.utils'
 import { Pagination, Sorting } from '~/types/index'
 
 class SussesResponse<T> {
@@ -19,7 +19,8 @@ class SussesResponse<T> {
     this.metadata = metadata
   }
 
-  send(): SuccessResponseBody<T> { // trả về với dữ liệu có kiểu SuccessResponseBody
+  send(): SuccessResponseBody<T> {
+    // trả về với dữ liệu có kiểu SuccessResponseBody
     if (Array.isArray(this.data)) {
       return {
         message: this.message,
@@ -35,4 +36,16 @@ class SussesResponse<T> {
   }
 }
 
-export default SussesResponse
+class OKResponse<T> extends SussesResponse<T> {
+  constructor(data: T, message?: string, metadata?: { pagination: Pagination; sorting: Sorting }) {
+    super(data, HttpStatusCode.OK, message || HttpStatusCode[HttpStatusCode.OK], metadata)
+  }
+}
+
+class CreatedResponse<T> extends SussesResponse<T> {
+  constructor(data: T, message?: string) {
+    super(data, HttpStatusCode.CREATED, message || HttpStatusCode[HttpStatusCode.CREATED])
+  }
+}
+
+export { SussesResponse, OKResponse, CreatedResponse }

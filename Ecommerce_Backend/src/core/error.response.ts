@@ -21,4 +21,28 @@ class ErrorResponse {
   }
 }
 
-export default ErrorResponse
+class BadRequestResponse extends ErrorResponse {
+  constructor(message: string) {
+    super(HttpStatusCode[HttpStatusCode.BAD_REQUEST], HttpStatusCode.BAD_REQUEST, message)
+  }
+}
+
+class UnauthorizedResponse extends ErrorResponse {
+  constructor(message: string) {
+    super(HttpStatusCode[HttpStatusCode.UNAUTHORIZED], HttpStatusCode.UNAUTHORIZED, message)
+  }
+}
+
+class NotFoundError extends ErrorResponse {
+  constructor(message: string) {
+    super(HttpStatusCode[HttpStatusCode.NOT_FOUND], HttpStatusCode.NOT_FOUND, message)
+  }
+}
+
+class ForbiddenError extends ErrorResponse {
+  constructor(message: string) {
+    super(HttpStatusCode[HttpStatusCode.FORBIDDEN], HttpStatusCode.FORBIDDEN, message)
+  }
+}
+
+export { ErrorResponse, BadRequestResponse, UnauthorizedResponse, NotFoundError, ForbiddenError }

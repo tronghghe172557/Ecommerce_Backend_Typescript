@@ -1,9 +1,7 @@
-import { IShop } from '~/models/shop.model'
-type DataType = IShop | string | number // Thêm các kiểu dữ liệu khác nếu cần
-
-export interface IMessage {
+// T is flexible, it can be any type
+export interface IMessage<T> {
   code: string
   message: string
-  data?: DataType[] // ? is optional
+  data?: T[] // ? is optional
   status: number
 }

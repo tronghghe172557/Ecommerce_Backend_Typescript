@@ -8,7 +8,7 @@ export type SuccessResponseBody<T> = T extends unknown[]
       data: T
       metadata: { pagination: Pagination; sorting: Sorting }
     }
-  : { data: T }
+  : { message?: string; statusCode: HttpStatusCode; data: T }
 
 export type FailedResponseBody = {
   message?: string

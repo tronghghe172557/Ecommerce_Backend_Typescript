@@ -8,7 +8,9 @@ class KeyTokenService {
 
       return token
     } catch (error) {
-      console.log(error.message)
+      if (error instanceof Error) {
+        console.log(error.message)
+      }
       return null
     }
   }

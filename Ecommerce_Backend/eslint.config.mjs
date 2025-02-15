@@ -12,7 +12,7 @@ export default [
       prettier: eslintPluginPrettier,
     },
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "warn", // Disallow usage of the any type
       "@typescript-eslint/no-unused-vars": "warn",
       "prettier/prettier": [
         "warn",
