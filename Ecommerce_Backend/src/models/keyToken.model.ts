@@ -4,7 +4,8 @@ export interface IKeyToken extends Document {
   user: Types.ObjectId
   publicKey: string
   privateKey: string
-  refreshToken?: Array<string>
+  refreshToken?: string
+  refreshTokensUsed?: Array<string>
 }
 
 const keyTokenSchema: Schema<IKeyToken> = new Schema(
@@ -21,6 +22,9 @@ const keyTokenSchema: Schema<IKeyToken> = new Schema(
       type: String
     },
     refreshToken: {
+      type: String,
+    },
+    refreshTokensUsed: {
       type: [String],
       default: []
     }

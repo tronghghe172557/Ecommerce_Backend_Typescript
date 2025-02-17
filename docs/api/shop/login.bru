@@ -1,0 +1,23 @@
+meta {
+  name: login
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3052/v1/api/shop/signUp
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: 244e3b0e35c668530c0c6b2e3ad5868cb7b80fbbcb7df04675eb6e9caa35f28011027e5976070bc7220961ec0f9168b85dd60b248dc899658a36c10f6212ae6c
+}
+
+body:json {
+  {
+    "name": "Shop Trong",
+    "email": "trong2@gmail.com",
+    "password": "123"
+  }
+}

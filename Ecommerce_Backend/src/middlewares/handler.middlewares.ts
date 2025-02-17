@@ -9,4 +9,4 @@ const asyncHandler = (fn: AsyncFunction) => {
   }
 }
 
-export default asyncHandler
+export { asyncHandler }

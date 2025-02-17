@@ -6,6 +6,11 @@ class AccessController {
     const result = await AccessService.signUp(req.body)
     result.send(res)
   }
+
+  static login = async (req: Request, res: Response) => {
+    const result = await AccessService.login(req.body)
+    result.send(res)
+  }
 }
 
 export default AccessController
