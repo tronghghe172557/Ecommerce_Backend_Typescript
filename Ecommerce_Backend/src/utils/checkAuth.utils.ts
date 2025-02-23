@@ -1,15 +1,26 @@
 import { findApiKeyByKey } from '~/services/apiKey.service'
 import { Request, Response, NextFunction } from 'express'
 import { IApiKey } from '~/models/apiKey.model'
-
+import { asyncHandler } from '~/middlewares'
+import { BadRequestResponse, NotFoundError } from '~/core'
+import jwt from 'jsonwebtoken'
+import { findKeyTokenByKey } from '~/models/repository/keyToken.repo'
+import { getHeader } from './helper'
 export interface IHeader {
   API_KEY: string
   AUTHORIZATION: string
+  CLIENT_ID: string
+  REFRESH_TOKEN: string
 }
 
-const HEADER: IHeader = {
+export const HEADER: IHeader = {
   API_KEY: 'x-api-key',
-  AUTHORIZATION: 'authorization'
+  AUTHORIZATION: 'authorization',
+  CLIENT_ID: 'client-id',
+  REFRESH_TOKEN: 'refresh_token'
+}
+export interface IDecodedUser extends jwt.JwtPayload {
+  userId: string
 }
 
 // đảm bảo kiểu chính xác
@@ -35,7 +46,7 @@ const apiKey = async (req: Request, res: Response, next: NextFunction): Promise<
 
     console.log('Pass API key middleware')
     req.objKey = objKey
-    next() // 
+    next() //
   } catch (error) {
     if (error instanceof Error) {
       res.status(500).json({
@@ -74,4 +85,72 @@ const permission = (permission: string) => {
   }
 }
 
-export { apiKey, permission }
+//
+const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  /*
+    1. check userId missing
+    2. get accessToken from header
+    3. verify accessToken
+    4. check token in db
+    5. check keyStore with this userId
+    6. oke all -> return next()
+  */
+
+  const userId = getHeader(req, 'CLIENT_ID')
+  if (!userId) {
+    throw new BadRequestResponse('Client ID is required')
+  }
+
+  const keyStore = await findKeyTokenByKey(userId)
+  if (!keyStore) {
+    throw new NotFoundError('Invalid keyStore in authentication')
+  }
+
+  // refresh token exist
+  if (getHeader(req, 'REFRESH_TOKEN')) {
+    try {
+      // check refresh token
+      const refreshToken = getHeader(req, 'REFRESH_TOKEN')
+
+      const decodeUser = (await jwt.verify(refreshToken, keyStore.privateKey)) as IDecodedUser
+      if (typeof decodeUser.userId !== 'string' || userId !== decodeUser.userId) {
+        throw new NotFoundError('Invalid refresh token')
+      }
+
+      req.keyStore = keyStore
+      req.user = decodeUser
+      req.refreshToken = refreshToken as string | undefined
+
+      return next()
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`authentication error: ${error.message}`)
+      }
+    }
+  }
+
+  // access token exist
+  const accessToken = getHeader(req, 'AUTHORIZATION')
+  if (!accessToken) {
+    throw new NotFoundError('Access Token is required')
+  }
+
+  try {
+    const decodeUser = (await jwt.verify(accessToken, keyStore.privateKey)) as IDecodedUser
+    console.log('decodeUser', decodeUser)
+    // With this:
+    if (typeof decodeUser.userId !== 'string' || userId !== decodeUser.userId) {
+      throw new NotFoundError('Invalid refresh token')
+    }
+
+    req.keyStore = keyStore
+    req.user = decodeUser
+    return next()
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`authentication error: ${error.message}`)
+    }
+  }
+})
+
+export { apiKey, permission, checkAuth }
