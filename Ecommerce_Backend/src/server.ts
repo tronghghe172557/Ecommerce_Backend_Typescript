@@ -1,9 +1,9 @@
+import { appRouter } from './base/router/app.router'
 import express, { NextFunction, Request, Response } from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'
-import Database from './db/init.mongodb'
-import indexRouter from './routes/index'
+import Database from '~/base/database'
 
 const app = express()
 // Middleware bảo mật HTTP headers
@@ -23,10 +23,10 @@ app.use(express.urlencoded({ extended: true })) // Middleware này giúp Express
 Database.getInstance()
 
 // Route cơ bản
-app.use('', indexRouter)
+app.use('', appRouter)
 
 // func handle error
-app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((error: Error, req: Request, res: Response) => {
   const statusCode = 500
   res.status(statusCode).json({
     status: 'error',

@@ -1,7 +1,7 @@
-import AccessService from '~/services/access.service'
+import { AccessService } from '~/modules/auth/services'
 import { Request, Response } from 'express'
 
-class AccessController {
+export class AccessController {
   static signUp = async (req: Request, res: Response) => {
     const result = await AccessService.signUp(req.body)
     result.send(res)
@@ -12,5 +12,3 @@ class AccessController {
     result.send(res)
   }
 }
-
-export default AccessController

@@ -1,5 +1,5 @@
-import roleShop from '~/constants/role'
-import { ILogin, ISignUp } from '~/types'
+import { roleShop } from '~/base/common/enums'
+import { ILogin, ISignUp } from '~/modules/auth/types/auth.type'
 import ShopModel from '~/models/shop.model'
 import { createShop, findShopByEmail } from '~/models/repository/shop.repo'
 import bcrypt from 'bcrypt'
@@ -7,8 +7,9 @@ import { IShop } from '~/models/shop.model'
 import crypto from 'crypto'
 import KeyTokenService from './keyToken.service'
 import { Types } from 'mongoose'
-import { createKeyTokenPair, getInfoData } from '~/utils'
-import { BadRequestResponse, SussesResponse, CreatedResponse, OKResponse } from '~/core'
+import { getInfoData } from '~/base/common/utils/dbHelper.util'
+import { BadRequestException, SussesResponse, CreatedResponse, OKResponse } from '~/base/common/exceptions'
+import { createKeyTokenPair } from '../utils'
 export interface ISignupMessage {
   shop: Partial<IShop>
   tokens: {
@@ -28,12 +29,12 @@ class AccessService {
     */
     const foundShop = await findShopByEmail(email)
     if (!foundShop) {
-      throw new BadRequestResponse('Email not found')
+      throw new BadRequestException('Email not found')
     }
 
     const match = await bcrypt.compare(password, foundShop.password)
     if (!match) {
-      throw new BadRequestResponse('Password is incorrect')
+      throw new BadRequestException('Password is incorrect')
     }
 
     const privateKey = crypto.randomBytes(32).toString('hex')
@@ -45,7 +46,7 @@ class AccessService {
       privateKey
     )
     if (!tokens) {
-      throw new BadRequestResponse('Error: tokens is not defined')
+      throw new BadRequestException('Error: tokens is not defined')
     }
 
     // save NEW TOKENS when login
@@ -71,7 +72,7 @@ class AccessService {
    * @param {string} params.email - The shop email (must be unique)
    * @param {string} params.password - The shop password (will be hashed)
    * @returns {Promise<SussesResponse<ISignupMessage>>} Returns shop info and tokens on success
-   * @throws {BadRequestResponse} When:
+   * @throws {BadRequestException} When:
    * - Email already exists
    * - Token creation fails
    * - Shop creation fails
@@ -88,7 +89,7 @@ class AccessService {
     */
     const holderShop = await findShopByEmail(email)
     if (holderShop) {
-      throw new BadRequestResponse('Email already exists')
+      throw new BadRequestException('Email already exists')
     }
 
     const passwordHash = bcrypt.hashSync(password, 10)
@@ -108,7 +109,7 @@ class AccessService {
       const tokens = await createKeyTokenPair({ _id: newShop._id, role: newShop.roles }, publicKey, privateKey)
 
       if (!tokens) {
-        throw new BadRequestResponse('Error: tokens is not defined')
+        throw new BadRequestException('Error: tokens is not defined')
       }
 
       const token = await KeyTokenService.createToken({
@@ -119,7 +120,7 @@ class AccessService {
       })
 
       if (!token) {
-        throw new BadRequestResponse('Error: token is not defined')
+        throw new BadRequestException('Error: token is not defined')
       }
 
       return new CreatedResponse<ISignupMessage>(
@@ -132,8 +133,8 @@ class AccessService {
     }
 
     // ném ra 1 ngoại lệ
-    throw new BadRequestResponse('Error: Sign up failed')
+    throw new BadRequestException('Error: Sign up failed')
   }
 }
 
-export default AccessService
+export { AccessService }

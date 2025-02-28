@@ -34,5 +34,4 @@ if (!parseResult.success) {
   process.exit(1)
 }
 
-console.error('Environment variables:', parseResult.data)
 export const envVariables = parseResult.data

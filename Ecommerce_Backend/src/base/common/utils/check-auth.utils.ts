@@ -1,11 +1,11 @@
-import { findApiKeyByKey } from '~/services/apiKey.service'
 import { Request, Response, NextFunction } from 'express'
 import { IApiKey } from '~/models/apiKey.model'
-import { asyncHandler } from '~/middlewares'
-import { BadRequestResponse, NotFoundError } from '~/core'
+import { asyncHandler } from '~/base/common/handlers'
+import { BadRequestException, NotFoundException } from '~/base/common/exceptions'
 import jwt from 'jsonwebtoken'
 import { findKeyTokenByKey } from '~/models/repository/keyToken.repo'
-import { getHeader } from './helper'
+import { getHeader } from './helper.util'
+import { findApiKeyByKey } from '~/modules/auth/services'
 export interface IHeader {
   API_KEY: string
   AUTHORIZATION: string
@@ -98,12 +98,12 @@ const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFun
 
   const userId = getHeader(req, 'CLIENT_ID')
   if (!userId) {
-    throw new BadRequestResponse('Client ID is required')
+    throw new BadRequestException('Client ID is required')
   }
 
   const keyStore = await findKeyTokenByKey(userId)
   if (!keyStore) {
-    throw new NotFoundError('Invalid keyStore in authentication')
+    throw new NotFoundException('Invalid keyStore in authentication')
   }
 
   // refresh token exist
@@ -114,7 +114,7 @@ const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFun
 
       const decodeUser = (await jwt.verify(refreshToken, keyStore.privateKey)) as IDecodedUser
       if (typeof decodeUser.userId !== 'string' || userId !== decodeUser.userId) {
-        throw new NotFoundError('Invalid refresh token')
+        throw new NotFoundException('Invalid refresh token')
       }
 
       req.keyStore = keyStore
@@ -132,7 +132,7 @@ const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFun
   // access token exist
   const accessToken = getHeader(req, 'AUTHORIZATION')
   if (!accessToken) {
-    throw new NotFoundError('Access Token is required')
+    throw new NotFoundException('Access Token is required')
   }
 
   try {
@@ -140,7 +140,7 @@ const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFun
     console.log('decodeUser', decodeUser)
     // With this:
     if (typeof decodeUser.userId !== 'string' || userId !== decodeUser.userId) {
-      throw new NotFoundError('Invalid refresh token')
+      throw new NotFoundException('Invalid refresh token')
     }
 
     req.keyStore = keyStore

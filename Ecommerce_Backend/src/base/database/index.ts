@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
-import dev from '~/config/config.mongodb'
-const connectString = `mongodb://${dev.db.host}:${dev.db.port}/${dev.db.name}`
+import { envVariables } from '~/base/common/utils/env.util'
+const connectString = `mongodb://${envVariables.DEV_DB_HOST}:${envVariables.DEV_DB_PORT}/${envVariables.DEV_DB_NAME}`
 
 class Database {
   private static instance: Database | null = null

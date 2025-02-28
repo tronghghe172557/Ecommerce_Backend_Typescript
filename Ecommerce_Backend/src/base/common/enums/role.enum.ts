@@ -5,11 +5,9 @@ type Role = 'SHOP' | 'WRITER' | 'EDITOR' | 'ADMIN'
     Key có kiểu K (phải là kiểu string | number | symbol).
 
 */
-const roleShop: Record<Role, Role> = {
+export const roleShop: Record<Role, Role> = {
   SHOP: 'SHOP',
   WRITER: 'WRITER',
   EDITOR: 'EDITOR',
   ADMIN: 'ADMIN'
 }
-
-export default roleShop
