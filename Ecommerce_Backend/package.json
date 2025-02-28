@@ -49,6 +49,8 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "zod": "^3.24.2",
+    "zod-validation-error": "^3.4.0"
   }
 }
