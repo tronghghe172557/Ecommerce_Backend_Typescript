@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
-import { IApiKey } from '~/models/apiKey.model'
+import { IApiKey } from '~/modules/auth/models/apiKey.model'
 import { asyncHandler } from '~/base/common/handlers'
 import { BadRequestException, NotFoundException } from '~/base/common/exceptions'
 import jwt from 'jsonwebtoken'
-import { findKeyTokenByKey } from '~/models/repository/keyToken.repo'
+import { findKeyTokenByKey } from '~/modules/auth/models/repository/keyToken.repo'
 import { getHeader } from './helper.util'
 import { findApiKeyByKey } from '~/modules/auth/services'
 export interface IHeader {
