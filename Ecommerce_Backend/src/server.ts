@@ -1,5 +1,5 @@
 import { appRouter } from './base/router/app.router'
-import express, { NextFunction, Request, Response } from 'express'
+import express, { Request, Response } from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'

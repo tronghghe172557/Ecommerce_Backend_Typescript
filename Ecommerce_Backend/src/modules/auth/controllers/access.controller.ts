@@ -1,14 +1,16 @@
 import { AccessService } from '~/modules/auth/services'
+import { loginRequestDto, signupRequestDto } from '~/modules/auth/dtos'
 import { Request, Response } from 'express'
+import { HttpStatusCode } from '~/base/common/enums'
 
 export class AccessController {
   static signUp = async (req: Request, res: Response) => {
-    const result = await AccessService.signUp(req.body)
-    result.send(res)
+    const dto = signupRequestDto.parse(req.body)
+    res.status(HttpStatusCode.CREATED).json(await AccessService.signUp(dto))
   }
 
   static login = async (req: Request, res: Response) => {
-    const result = await AccessService.login(req.body)
-    result.send(res)
+    const dto = loginRequestDto.parse(req.body)
+    res.status(HttpStatusCode.OK).json(await AccessService.login(dto))
   }
 }

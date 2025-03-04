@@ -1,5 +1,4 @@
 import { roleShop } from '~/base/common/enums'
-import { ILogin, ISignUp } from '~/modules/auth/types/auth.type'
 import ShopModel from '~/modules/auth/models/shop.model'
 import { createShop, findShopByEmail } from '~/modules/auth/models/repository/shop.repo'
 import bcrypt from 'bcrypt'
@@ -7,19 +6,13 @@ import { IShop } from '~/modules/auth/models/shop.model'
 import crypto from 'crypto'
 import KeyTokenService from './keyToken.service'
 import { Types } from 'mongoose'
-import { getInfoData } from '~/base/common/utils/dbHelper.util'
-import { BadRequestException, SussesResponse, CreatedResponse, OKResponse } from '~/base/common/exceptions'
+import { BadRequestException } from '~/base/common/exceptions'
 import { createKeyTokenPair } from '../utils'
-export interface ISignupMessage {
-  shop: Partial<IShop>
-  tokens: {
-    accessToken: string
-    refreshToken: string
-  }
-}
+import { LoginRequestDto, LoginSuccessDto, SignupRequestDto } from '~/modules/auth/dtos'
+import { SuccessResponseBody } from '~/base/common/types'
 // Promise<void> => Hàm không trả về giá trị
 class AccessService {
-  static login = async ({ email, password }: ILogin): Promise<SussesResponse<ISignupMessage>> => {
+  static login = async ({ email, password }: LoginRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
     /*
       1. check email exist
       2. check password
@@ -57,13 +50,14 @@ class AccessService {
       refreshToken: tokens?.refreshToken
     })
 
-    return new OKResponse<ISignupMessage>(
-      {
-        shop: getInfoData({ fields: ['_id', 'name', 'email'], object: foundShop }),
-        tokens: tokens // Use the tokens object directly
-      },
-      'Login successfully'
-    )
+    return {
+      data: {
+        id: foundShop._id as string,
+        role: foundShop.roles,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken
+      }
+    }
   }
   /**
    * Register a new shop account
@@ -77,7 +71,11 @@ class AccessService {
    * - Token creation fails
    * - Shop creation fails
    */
-  static signUp = async ({ name, email, password }: ISignUp): Promise<SussesResponse<ISignupMessage>> => {
+  static signUp = async ({
+    name,
+    email,
+    password
+  }: SignupRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
     // logic
     /*
       1. Check email
@@ -123,17 +121,17 @@ class AccessService {
         throw new BadRequestException('Error: token is not defined')
       }
 
-      return new CreatedResponse<ISignupMessage>(
-        {
-          shop: getInfoData({ fields: ['_id', 'name', 'email'], object: newShop }),
-          tokens: tokens // Use the tokens object directly
-        },
-        'Sign up successfully'
-      )
+      return {
+        data: {
+          id: newShop._id as string,
+          role: newShop.roles,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken
+        }
+      }
     }
 
-    // ném ra 1 ngoại lệ
-    throw new BadRequestException('Error: Sign up failed')
+    throw new BadRequestException('Error: Shop creation failed')
   }
 }
 
