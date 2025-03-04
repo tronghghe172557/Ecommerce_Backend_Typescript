@@ -24,7 +24,7 @@
     "@types/helmet": "^0.0.48",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/lodash": "^4.17.15",
-    "@types/mongoose": "^5.11.96",
+    "@types/mongoose": "^5.11.97",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.13.1",
     "eslint": "^9.20.0",

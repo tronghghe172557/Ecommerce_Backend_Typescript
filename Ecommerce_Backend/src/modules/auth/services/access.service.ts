@@ -4,8 +4,7 @@ import { createShop, findShopByEmail } from '~/modules/auth/models/repository/sh
 import bcrypt from 'bcrypt'
 import { IShop } from '~/modules/auth/models/shop.model'
 import crypto from 'crypto'
-import KeyTokenService from './keyToken.service'
-import { Types } from 'mongoose'
+import { KeyTokenService } from '~/modules/auth/services'
 import { BadRequestException } from '~/base/common/exceptions'
 import { createKeyTokenPair } from '../utils'
 import { LoginRequestDto, LoginSuccessDto, SignupRequestDto } from '~/modules/auth/dtos'
@@ -33,11 +32,7 @@ class AccessService {
     const privateKey = crypto.randomBytes(32).toString('hex')
     const publicKey = crypto.randomBytes(32).toString('hex')
 
-    const tokens = await createKeyTokenPair(
-      { _id: foundShop._id as Types.ObjectId, role: foundShop.roles },
-      publicKey,
-      privateKey
-    )
+    const tokens = await createKeyTokenPair({ _id: foundShop._id, role: foundShop.roles }, publicKey, privateKey)
     if (!tokens) {
       throw new BadRequestException('Error: tokens is not defined')
     }
@@ -46,7 +41,7 @@ class AccessService {
     await KeyTokenService.createToken({
       privateKey,
       publicKey,
-      user: foundShop._id as Types.ObjectId,
+      user: foundShop._id,
       refreshToken: tokens?.refreshToken
     })
 
@@ -104,20 +99,25 @@ class AccessService {
       const privateKey = crypto.randomBytes(32).toString('hex')
       const publicKey = crypto.randomBytes(32).toString('hex')
 
+      // create accessToken, refreshToken
       const tokens = await createKeyTokenPair({ _id: newShop._id, role: newShop.roles }, publicKey, privateKey)
-
       if (!tokens) {
+        // delete shop if token creation fails
+        await ShopModel.findByIdAndDelete(newShop._id)
         throw new BadRequestException('Error: tokens is not defined')
       }
 
+      // save token to db
       const token = await KeyTokenService.createToken({
         privateKey,
         publicKey,
         refreshToken: tokens.refreshToken,
-        user: newShop._id as Types.ObjectId
+        user: newShop._id as string
       })
 
       if (!token) {
+        // delete shop if token creation fails
+        await ShopModel.findByIdAndDelete(newShop._id)
         throw new BadRequestException('Error: token is not defined')
       }
 

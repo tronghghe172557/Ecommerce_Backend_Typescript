@@ -1,25 +1,37 @@
 import { KeyTokenModel, IKeyToken } from '~/modules/auth/models'
 
-class KeyTokenService {
+export class KeyTokenService {
   static createToken = async (tokenData: Partial<IKeyToken>): Promise<IKeyToken | null> => {
     try {
-      const filter = { user: tokenData.user },
-        update = {
+      const existingToken = await KeyTokenModel.findOne({ user: tokenData.user })
+
+      if (existingToken) {
+        await KeyTokenModel.updateOne(
+          { user: tokenData.user },
+          {
+            $set: {
+              publicKey: tokenData.publicKey,
+              privateKey: tokenData.privateKey,
+              refreshToken: tokenData.refreshToken,
+              refreshTokensUsed: []
+            }
+          }
+        )
+        return await KeyTokenModel.findOne({ user: tokenData.user }).lean()
+      } else {
+        return await KeyTokenModel.create({
+          user: tokenData.user,
           publicKey: tokenData.publicKey,
           privateKey: tokenData.privateKey,
           refreshToken: tokenData.refreshToken,
           refreshTokensUsed: []
-        },
-        options = { upsert: true, new: true, setDefaultsOnInsert: true }
-      const tokens = await KeyTokenModel.findOneAndUpdate(filter, update, options)
-      return tokens
+        })
+      }
     } catch (error) {
       if (error instanceof Error) {
-        console.log(error.message)
+        console.error('KeyTokenService createToken error:', error.message)
       }
       return null
     }
   }
 }
-
-export default KeyTokenService

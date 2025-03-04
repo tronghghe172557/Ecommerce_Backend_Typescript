@@ -1,38 +1,34 @@
-import mongoose, { Schema, Document, Model, Types } from 'mongoose'
+import mongoose, { Schema, Model } from 'mongoose'
+import { BaseModel, baseModelSchemaDefinition } from '~/base/common/models'
 
-export interface IKeyToken extends Document {
-  user: Types.ObjectId
+export interface IKeyToken extends BaseModel {
+  user: string
   publicKey: string
   privateKey: string
   refreshToken?: string
   refreshTokensUsed?: Array<string>
 }
 
-const keyTokenSchema: Schema<IKeyToken> = new Schema(
-  {
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: 'Shop',
-      required: true
-    },
-    publicKey: {
-      type: String
-    },
-    privateKey: {
-      type: String
-    },
-    refreshToken: {
-      type: String,
-    },
-    refreshTokensUsed: {
-      type: [String],
-      default: []
-    }
+const keyTokenSchema: Schema<IKeyToken> = new Schema({
+  ...baseModelSchemaDefinition,
+  user: {
+    type: String,
+    ref: 'User',
+    required: true
   },
-  {
-    timestamps: true,
-    collection: 'Keys'
+  publicKey: {
+    type: String
+  },
+  privateKey: {
+    type: String
+  },
+  refreshToken: {
+    type: String
+  },
+  refreshTokensUsed: {
+    type: [String],
+    default: []
   }
-)
+})
 
-export const KeyTokenModel: Model<IKeyToken> = mongoose.model<IKeyToken>('Key', keyTokenSchema)
+export const KeyTokenModel: Model<IKeyToken> = mongoose.model<IKeyToken>('Keys', keyTokenSchema)
