@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model } from 'mongoose'
-import { BaseModel, baseModelSchemaDefinition } from './base.model'
+import { BaseModel, baseModelSchemaDefinition } from '~/base/common/models'
 
 // extend BaseModel
 export interface IApiKey extends BaseModel {
@@ -32,5 +32,4 @@ const apiKeySchema: Schema<IApiKey> = new Schema(
 )
 
 // Việc tạo model phải tuân thủ theo đúng interface IApiKey
-const KeyApiModel: Model<IApiKey> = mongoose.model<IApiKey>('ApiKey', apiKeySchema)
-export default KeyApiModel
+export const KeyApiModel: Model<IApiKey> = mongoose.model<IApiKey>('ApiKey', apiKeySchema)

@@ -35,5 +35,4 @@ const keyTokenSchema: Schema<IKeyToken> = new Schema(
   }
 )
 
-const KeyTokenModel: Model<IKeyToken> = mongoose.model<IKeyToken>('Key', keyTokenSchema)
-export default KeyTokenModel
+export const KeyTokenModel: Model<IKeyToken> = mongoose.model<IKeyToken>('Key', keyTokenSchema)

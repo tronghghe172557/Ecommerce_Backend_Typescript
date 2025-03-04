@@ -1,5 +1,5 @@
 import { appRouter } from './base/router/app.router'
-import express, { Request, Response } from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'
@@ -23,10 +23,10 @@ app.use(express.urlencoded({ extended: true })) // Middleware này giúp Express
 Database.getInstance()
 
 // Route cơ bản
-app.use('', appRouter)
+app.use('/v1/api', appRouter)
 
 // func handle error
-app.use((error: Error, req: Request, res: Response) => {
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   const statusCode = 500
   res.status(statusCode).json({
     status: 'error',

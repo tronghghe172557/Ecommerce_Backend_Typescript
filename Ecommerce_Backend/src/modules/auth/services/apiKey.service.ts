@@ -1,5 +1,4 @@
-import KeyApiModel from '~/models/apiKey.model'
-import { IApiKey } from '~/models/apiKey.model'
+import { KeyApiModel, IApiKey } from '~/modules/auth/models'
 
 const findApiKeyByKey = async (key: string): Promise<IApiKey | null> => {
   return KeyApiModel.findOne({

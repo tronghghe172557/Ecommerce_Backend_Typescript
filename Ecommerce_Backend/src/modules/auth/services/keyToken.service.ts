@@ -1,4 +1,4 @@
-import KeyTokenModel, { IKeyToken } from '~/models/keyToken.model'
+import { KeyTokenModel, IKeyToken } from '~/modules/auth/models'
 
 class KeyTokenService {
   static createToken = async (tokenData: Partial<IKeyToken>): Promise<IKeyToken | null> => {
