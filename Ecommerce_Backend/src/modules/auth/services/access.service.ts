@@ -9,6 +9,7 @@ import { BadRequestException } from '~/base/common/exceptions'
 import { createKeyTokenPair } from '../utils'
 import { LoginRequestDto, LoginSuccessDto, SignupRequestDto } from '~/modules/auth/dtos'
 import { SuccessResponseBody } from '~/base/common/types'
+import { KeyTokenModel } from '~/modules/auth/models'
 // Promise<void> => Hàm không trả về giá trị
 class AccessService {
   static login = async ({ email, password }: LoginRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
@@ -132,6 +133,14 @@ class AccessService {
     }
 
     throw new BadRequestException('Error: Shop creation failed')
+  }
+
+  static logout = async (keyId: string): Promise<void> => {
+    const keyToken = await KeyTokenModel.findByIdAndDelete(keyId)
+    if (keyToken) {
+      // relocate refreshToken to blacklist
+    }
+    throw new BadRequestException('KeyToken not found')
   }
 }
 
