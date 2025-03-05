@@ -1,6 +1,6 @@
-import { IApiKey } from '~/models/apiKey.model'
-import { IKeyToken } from './models/keyToken.model'
-import { IDecodedUser } from './utils'
+import { IApiKey } from '~/modules/auth/models'
+import { IKeyToken } from '~/modules/auth/models'
+import { IDecodedUser } from '~/base/common/utils'
 
 // mở rộng interface Request của Express
 declare global {

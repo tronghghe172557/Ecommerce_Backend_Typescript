@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express'
-import { IApiKey } from '~/modules/auth/models/apiKey.model'
+import { IApiKey, KeyTokenModel } from '~/modules/auth/models'
 import { asyncHandler } from '~/base/common/handlers'
 import { BadRequestException, NotFoundException } from '~/base/common/exceptions'
 import jwt from 'jsonwebtoken'
-import { findKeyTokenByKey } from '~/modules/auth/models/repository/keyToken.repo'
 import { getHeader } from './helper.util'
 import { findApiKeyByKey } from '~/modules/auth/services'
+import { verifyToken } from '~/modules/auth/utils'
 export interface IHeader {
   API_KEY: string
   AUTHORIZATION: string
@@ -13,12 +13,14 @@ export interface IHeader {
   REFRESH_TOKEN: string
 }
 
-export const HEADER: IHeader = {
-  API_KEY: 'x-api-key',
-  AUTHORIZATION: 'authorization',
-  CLIENT_ID: 'client-id',
-  REFRESH_TOKEN: 'refresh_token'
+export enum HEADER {
+  API_KEY = 'x-api-key',
+  AUTHORIZATION = 'authorization', // access token ~ bearer token
+  CLIENT_ID = 'x-client-id', // ~ shopId
+  REFRESH_TOKEN = 'refresh_token'
 }
+
+// kiểu dữ liệu của user sau khi giải mã token
 export interface IDecodedUser extends jwt.JwtPayload {
   userId: string
 }
@@ -86,7 +88,7 @@ const permission = (permission: string) => {
 }
 
 //
-const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const AuthGuard = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   /*
     1. check userId missing
     2. get accessToken from header
@@ -96,24 +98,25 @@ const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFun
     6. oke all -> return next()
   */
 
-  const userId = getHeader(req, 'CLIENT_ID')
-  if (!userId) {
+  const shopId = req.headers[HEADER.CLIENT_ID]?.toString() // ~ shopId
+  if (!shopId) {
     throw new BadRequestException('Client ID is required')
   }
 
-  const keyStore = await findKeyTokenByKey(userId)
+  // find keyStore
+  const keyStore = await KeyTokenModel.findOne({ user: shopId }) // find key follow shopId
   if (!keyStore) {
     throw new NotFoundException('Invalid keyStore in authentication')
   }
 
   // refresh token exist
-  if (getHeader(req, 'REFRESH_TOKEN')) {
+  if (req.headers[HEADER.REFRESH_TOKEN]) {
     try {
       // check refresh token
       const refreshToken = getHeader(req, 'REFRESH_TOKEN')
 
       const decodeUser = (await jwt.verify(refreshToken, keyStore.privateKey)) as IDecodedUser
-      if (typeof decodeUser.userId !== 'string' || userId !== decodeUser.userId) {
+      if (typeof decodeUser.userId !== 'string' || shopId !== decodeUser.userId) {
         throw new NotFoundException('Invalid refresh token')
       }
 
@@ -130,16 +133,23 @@ const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFun
   }
 
   // access token exist
-  const accessToken = getHeader(req, 'AUTHORIZATION')
+  const accessToken = req.headers[HEADER.AUTHORIZATION]?.toString()
   if (!accessToken) {
     throw new NotFoundException('Access Token is required')
   }
 
   try {
-    const decodeUser = (await jwt.verify(accessToken, keyStore.privateKey)) as IDecodedUser
-    console.log('decodeUser', decodeUser)
-    // With this:
-    if (typeof decodeUser.userId !== 'string' || userId !== decodeUser.userId) {
+    // access token -> public key
+    const decodeUser = await verifyToken<IDecodedUser>(accessToken, keyStore.publicKey)
+    /*
+    decodeUser {
+      _id: '04c1ad3a-8223-43e1-8762-2b0248d08807',
+      role: [],
+      iat: 1741145782,
+      exp: 1741318582
+    }
+    */
+    if (typeof decodeUser._id !== 'string' || shopId !== decodeUser._id) {
       throw new NotFoundException('Invalid refresh token')
     }
 
@@ -153,4 +163,4 @@ const checkAuth = asyncHandler(async (req: Request, res: Response, next: NextFun
   }
 })
 
-export { apiKey, permission, checkAuth }
+export { apiKey, permission, AuthGuard }

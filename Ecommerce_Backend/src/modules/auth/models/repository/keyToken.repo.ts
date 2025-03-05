@@ -1,4 +1,4 @@
-import KeyTokenModel, { IKeyToken } from './../keyToken.model'
+import { KeyTokenModel, IKeyToken } from '~/modules/auth/models'
 
 const createKeyToken = async (keyToken: IKeyToken): Promise<IKeyToken | null> => {
   return await KeyTokenModel.create(keyToken)

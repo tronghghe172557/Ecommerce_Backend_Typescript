@@ -28,6 +28,7 @@ app.use('/v1/api', appRouter)
 // func handle error
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   const statusCode = 500
+  console.log("Error: ", error)
   res.status(statusCode).json({
     status: 'error',
     code: statusCode,
