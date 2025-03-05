@@ -1,15 +1,20 @@
+import { IHandleRefreshToken } from './../types/auth.type'
 import { roleShop } from '~/base/common/enums'
-import ShopModel from '~/modules/auth/models/shop.model'
-import { createShop, findShopByEmail } from '~/modules/auth/models/repository/shop.repo'
+import { createShop, findShopByEmail } from '~/modules/auth/models'
 import bcrypt from 'bcrypt'
-import { IShop } from '~/modules/auth/models/shop.model'
+import { IShop, ShopModel, KeyTokenModel } from '~/modules/auth/models'
 import crypto from 'crypto'
 import { KeyTokenService } from '~/modules/auth/services'
 import { BadRequestException } from '~/base/common/exceptions'
-import { createKeyTokenPair } from '../utils'
-import { LoginRequestDto, LoginSuccessDto, SignupRequestDto } from '~/modules/auth/dtos'
+import { createKeyTokenPair } from '~/modules/auth/utils'
+import {
+  LoginRequestDto,
+  LoginSuccessDto,
+  RefreshSuccessDto,
+  SignupRequestDto,
+  updateRefreshDto
+} from '~/modules/auth/dtos'
 import { SuccessResponseBody } from '~/base/common/types'
-import { KeyTokenModel } from '~/modules/auth/models'
 // Promise<void> => Hàm không trả về giá trị
 class AccessService {
   static login = async ({ email, password }: LoginRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
@@ -42,7 +47,7 @@ class AccessService {
     await KeyTokenService.createToken({
       privateKey,
       publicKey,
-      user: foundShop._id,
+      user: foundShop._id, // ~ shopId or userId
       refreshToken: tokens?.refreshToken
     })
 
@@ -141,6 +146,58 @@ class AccessService {
       // relocate refreshToken to blacklist
     }
     throw new BadRequestException('KeyToken not found')
+  }
+
+  static refreshToken = async ({
+    refreshToken,
+    keyStore
+  }: IHandleRefreshToken): Promise<SuccessResponseBody<RefreshSuccessDto>> => {
+    // 1. find keyToken by userId
+    const keyToken = await KeyTokenModel.findOne({ user: keyStore.user })
+    const shop = await ShopModel.findOne({ _id: keyStore.user })
+
+    if (!keyToken || !shop) {
+      throw new BadRequestException(`${!keyToken ? 'KeyToken not found' : 'Shop not found'}`)
+    }
+
+    // 2. check refreshTokenUsed
+    if (keyToken.refreshTokensUsed?.includes(refreshToken)) {
+      throw new BadRequestException('You are catching up')
+    }
+
+    // 3. compare refreshToken in params with refreshToken in db
+    if (keyToken.refreshToken !== refreshToken) {
+      throw new BadRequestException('Invalid refreshToken')
+    }
+
+    // 4. create new token
+    const tokens = await createKeyTokenPair(
+      { _id: keyToken.user, roles: shop.roles },
+      keyToken.publicKey,
+      keyToken.privateKey
+    )
+
+    // 5. update refreshToken + refreshTokenUsed and  to db with update-refreshToke.dto
+    const newKeyToken = await KeyTokenService.updateRefreshTokenUsed(
+      updateRefreshDto.parse({
+        userId: keyToken._id,
+        refreshToken: tokens?.refreshToken,
+        refreshTokenUsed: refreshToken
+      })
+    )
+    if (!newKeyToken) {
+      throw new BadRequestException('Error: newKeyToken is not defined')
+    }
+
+    // 6. return response
+    return {
+      data: {
+        id: newKeyToken.user,
+        role: shop.roles,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken
+      }
+    }
   }
 }
 

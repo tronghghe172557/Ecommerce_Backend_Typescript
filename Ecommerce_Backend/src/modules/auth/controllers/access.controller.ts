@@ -17,4 +17,8 @@ export class AccessController {
   static logout = async (req: Request, res: Response) => {
     res.status(HttpStatusCode.NO_CONTENT).json(await AccessService.logout(req.query.keyId as string))
   }
+
+  static handleRefreshToken = async (req: Request, res: Response) => {
+    res.status(HttpStatusCode.OK).json(await AccessService.refreshToken(req.body))
+  }
 }

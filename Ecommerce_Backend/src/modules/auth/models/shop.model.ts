@@ -46,5 +46,4 @@ const shopSchema: Schema<IShop> = new Schema({
 })
 
 // Xuất Model với TypeScript Generics
-const ShopModel: Model<IShop> = mongoose.model<IShop>('Shops', shopSchema)
-export default ShopModel
+export const ShopModel: Model<IShop> = mongoose.model<IShop>('Shops', shopSchema)

@@ -16,7 +16,7 @@ const createKeyTokenPair = async <T extends object>(
   payload: T,
   publicKey: string,
   privateKey: string
-): Promise<IToken<T> | null> => {
+): Promise<IToken<T>> => {
   try {
     const accessToken = jwt.sign(payload, publicKey, { expiresIn: '2 days' })
 
@@ -26,8 +26,7 @@ const createKeyTokenPair = async <T extends object>(
 
     return { accessToken, refreshToken }
   } catch (error) {
-    console.log(error)
-    return null
+    throw new BadRequestException(`Error: ${error instanceof Error && error.message}`)
   }
 }
 

@@ -13,7 +13,7 @@ const keyTokenSchema: Schema<IKeyToken> = new Schema({
   ...baseModelSchemaDefinition,
   user: {
     type: String,
-    ref: 'User',
+    ref: 'shops',
     required: true
   },
   publicKey: {

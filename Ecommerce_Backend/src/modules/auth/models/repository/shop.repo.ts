@@ -1,4 +1,4 @@
-import ShopModel, { IShop } from '../shop.model'
+import { ShopModel, IShop } from '~/modules/auth/models'
 
 const findShopByEmail = async (email: string): Promise<IShop | null> => {
   return await ShopModel.findOne({ email })

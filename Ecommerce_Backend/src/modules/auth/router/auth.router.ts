@@ -1,10 +1,12 @@
 import { Router } from 'express'
 import { asyncHandler } from '~/base/common/handlers'
+import { AuthGuard } from '~/base/common/utils'
 import { AccessController } from '~/modules/auth/controllers'
 
 export const authRouter = Router()
 
-authRouter.post('/shop/signUp', asyncHandler(AccessController.signUp))
-authRouter.post('/shop/login', asyncHandler(AccessController.login))
+authRouter.post('/signUp', asyncHandler(AccessController.signUp))
+authRouter.post('/login', asyncHandler(AccessController.login))
 
-// authRouter.use(checkAuth)
+authRouter.use(AuthGuard)
+authRouter.post('/handle-refreshToken', asyncHandler(AccessController.handleRefreshToken))
