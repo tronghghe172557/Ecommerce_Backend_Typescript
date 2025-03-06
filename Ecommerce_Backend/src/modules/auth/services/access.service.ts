@@ -22,23 +22,19 @@ class AccessService {
   private static readonly TIMEOUT = 60 * 60 * 24 * 30 // 30 days
 
   static login = async ({ email, password }: LoginRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
-    /*
-      1. check email exist
-      2. check password
-      3. create token
-      4. save publickey to db
-      return response
-    */
+   // 1. check email exist
     const foundShop = await findShopByEmail(email)
     if (!foundShop) {
       throw new BadRequestException('Email not found')
     }
 
+    // 2. check password
     const match = await bcrypt.compare(password, foundShop.password)
     if (!match) {
       throw new BadRequestException('Password is incorrect')
     }
 
+    // 3. create token => accessToken, refreshToken
     const privateKey = crypto.randomBytes(32).toString('hex')
     const publicKey = crypto.randomBytes(32).toString('hex')
 
@@ -47,7 +43,7 @@ class AccessService {
       throw new BadRequestException('Error: tokens is not defined')
     }
 
-    // save NEW TOKENS when login
+    // 4. save publickey to db
     await KeyTokenService.createToken({
       privateKey,
       publicKey,
@@ -64,38 +60,21 @@ class AccessService {
       }
     }
   }
-  /**
-   * Register a new shop account
-   * @param {Object} params - The signup parameters
-   * @param {string} params.name - The shop name
-   * @param {string} params.email - The shop email (must be unique)
-   * @param {string} params.password - The shop password (will be hashed)
-   * @returns {Promise<SussesResponse<ISignupMessage>>} Returns shop info and tokens on success
-   * @throws {BadRequestException} When:
-   * - Email already exists
-   * - Token creation fails
-   * - Shop creation fails
-   */
+
   static signUp = async ({
     name,
     email,
     password
   }: SignupRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
-    // logic
-    /*
-      1. Check email
-      2. Hash password
-      3. Create shop
-      4. Create token
-      5. Create key-token pair - accessToken, refreshToken
-      6. Return response
-    */
+    // 1. Check email
     const holderShop = await findShopByEmail(email)
     if (holderShop) {
       throw new BadRequestException('Email already exists')
     }
 
+    // 2. Hash password
     const passwordHash = bcrypt.hashSync(password, 10)
+    // 3. Create shop
     const newShop: IShop | null = await createShop(
       new ShopModel({
         name,
@@ -109,7 +88,7 @@ class AccessService {
       const privateKey = crypto.randomBytes(32).toString('hex')
       const publicKey = crypto.randomBytes(32).toString('hex')
 
-      // create accessToken, refreshToken
+      // 4. Create token => accessToken, refreshToken
       const tokens = await createKeyTokenPair({ _id: newShop._id, role: newShop.roles }, publicKey, privateKey)
       if (!tokens) {
         // delete shop if token creation fails
@@ -117,7 +96,7 @@ class AccessService {
         throw new BadRequestException('Error: tokens is not defined')
       }
 
-      // save token to db
+      // 5. save token to db
       const token = await KeyTokenService.createToken({
         privateKey,
         publicKey,
@@ -145,6 +124,7 @@ class AccessService {
   }
 
   static logout = async (keyId: string): Promise<void> => {
+    // delete keyToken from db
     const keyToken = await KeyTokenModel.findByIdAndDelete(keyId)
     if (keyToken) {
       // relocate refreshToken to blacklist
