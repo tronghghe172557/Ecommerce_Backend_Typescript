@@ -15,8 +15,11 @@ import {
   updateRefreshDto
 } from '~/modules/auth/dtos'
 import { SuccessResponseBody } from '~/base/common/types'
+import { redis } from '~/base/redis'
 // Promise<void> => Hàm không trả về giá trị
 class AccessService {
+  private static readonly BLACKLISTED = 'BLACKLISTED'
+
   static login = async ({ email, password }: LoginRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
     /*
       1. check email exist
@@ -144,6 +147,7 @@ class AccessService {
     const keyToken = await KeyTokenModel.findByIdAndDelete(keyId)
     if (keyToken) {
       // relocate refreshToken to blacklist
+      await redis.getInstance().set(keyId, this.BLACKLISTED, 'EX', 60 * 60 * 24 * 30)
     }
     throw new BadRequestException('KeyToken not found')
   }

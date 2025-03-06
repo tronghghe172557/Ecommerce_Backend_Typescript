@@ -10,3 +10,4 @@ authRouter.post('/login', asyncHandler(AccessController.login))
 
 authRouter.use(AuthGuard)
 authRouter.post('/handle-refreshToken', asyncHandler(AccessController.handleRefreshToken))
+authRouter.get('/logout', asyncHandler(AccessController.logout))
