@@ -4,6 +4,7 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'
 import Database from '~/base/database'
+import { redis } from '~/base/redis'
 
 const app = express()
 // Middleware bảo mật HTTP headers
@@ -21,6 +22,8 @@ app.use(express.urlencoded({ extended: true })) // Middleware này giúp Express
 
 // connect to MongoDB
 Database.getInstance()
+// connect to Redis
+redis.connect()
 
 // Route cơ bản
 app.use('/v1/api', appRouter)

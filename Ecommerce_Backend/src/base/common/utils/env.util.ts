@@ -22,7 +22,10 @@ const envSchema = z.object({
   CLOUD_REDIS_PASSWORD: z.string(),
   CLOUD_REDIS_PORT: z.coerce.number().positive(),
   DISCORD_BOT_TOKEN: z.string(),
-  DISCORD_CHANNEL_ID: z.string()
+  DISCORD_CHANNEL_ID: z.string(),
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.coerce.number().positive(),
+  REDIS_PASSWORD: z.string()
 })
 
 // safeParse => returns a result object with the parsed value or an error
