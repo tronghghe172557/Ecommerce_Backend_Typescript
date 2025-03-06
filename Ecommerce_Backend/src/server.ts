@@ -5,8 +5,10 @@ import morgan from 'morgan'
 import compression from 'compression'
 import Database from '~/base/database'
 import { redis } from '~/base/redis'
+import { Logger } from '~/base/common/utils'
 
 const app = express()
+const logger = new Logger('Server')
 // Middleware bảo mật HTTP headers
 app.use(helmet())
 
@@ -31,7 +33,7 @@ app.use('/v1/api', appRouter)
 // func handle error
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   const statusCode = 500
-  console.log("Error: ", error)
+  
   res.status(statusCode).json({
     status: 'error',
     code: statusCode,
@@ -43,5 +45,5 @@ app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
 // Chạy server
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`)
+  logger.info(`Server is running on http://localhost:${PORT}`)
 })

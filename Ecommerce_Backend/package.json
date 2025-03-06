@@ -28,6 +28,7 @@
     "@types/mongoose": "^5.11.97",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.13.1",
+    "@types/winston": "^2.4.4",
     "eslint": "^9.20.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
@@ -52,6 +53,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.0",
     "morgan": "^1.10.0",
+    "winston": "^3.17.0",
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0"
   }
