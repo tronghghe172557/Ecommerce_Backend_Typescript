@@ -1,4 +1,4 @@
-import { IHandleRefreshToken } from './../types/auth.type'
+import { IHandleRefreshToken } from './../types'
 import { roleShop } from '~/base/common/enums'
 import { createShop, findShopByEmail } from '~/modules/auth/models'
 import bcrypt from 'bcrypt'
@@ -19,6 +19,7 @@ import { redis } from '~/base/redis'
 // Promise<void> => Hàm không trả về giá trị
 class AccessService {
   private static readonly BLACKLISTED = 'BLACKLISTED'
+  private static readonly TIMEOUT = 60 * 60 * 24 * 30 // 30 days
 
   static login = async ({ email, password }: LoginRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
     /*
@@ -147,7 +148,7 @@ class AccessService {
     const keyToken = await KeyTokenModel.findByIdAndDelete(keyId)
     if (keyToken) {
       // relocate refreshToken to blacklist
-      await redis.getInstance().set(keyId, this.BLACKLISTED, 'EX', 60 * 60 * 24 * 30)
+      await redis.getInstance().set(keyId, this.BLACKLISTED, 'EX', this.TIMEOUT)
     }
     throw new BadRequestException('KeyToken not found')
   }
