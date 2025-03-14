@@ -1,6 +1,7 @@
 import { BaseModel, baseModelSchemaDefinition } from '~/base/common/models'
 import mongoose, { Schema, Model } from 'mongoose'
 import { IClothing, IElectronic } from '~/modules/products/models'
+import { ProductType } from '~/modules/products/enums'
 
 const DOCUMENT_NAME = 'Product'
 
@@ -10,7 +11,7 @@ export interface IProduct extends BaseModel {
   product_description: string
   product_price: number
   product_quantity: number
-  product_type: 'Clothing' | 'Electronics' | 'Furniture'
+  product_type: ProductType.Clothing | ProductType.Electronic | ProductType.Furniture
   product_shop: string
   product_attribute: IClothing | IElectronic
 }
@@ -39,7 +40,7 @@ const productSchema: Schema<IProduct> = new Schema({
   product_type: {
     type: String,
     required: true,
-    enum: ['Clothing', 'Electronics', 'Furniture']
+    enum: [ProductType.Clothing, ProductType.Electronic, ProductType.Furniture]
   },
   product_shop: {
     type: String,

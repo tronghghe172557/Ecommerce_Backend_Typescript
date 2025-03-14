@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { clothingDto, electronicDto } from './sub-product.dto'
 import { deleteDto } from '~/base/dtos'
+import { ProductType } from '~/modules/products/enums'
 
 const baseProductSchema = z.object({
   product_name: z.string(),
@@ -8,7 +9,7 @@ const baseProductSchema = z.object({
   product_description: z.string(),
   product_price: z.coerce.number(),
   product_quantity: z.coerce.number(),
-  product_type: z.enum(['Clothing', 'Electronics', 'Furniture']),
+  product_type: z.enum([ProductType.Clothing, ProductType.Electronic, ProductType.Furniture]),
   product_shop: z.string(), // Assuming product_shop is a string, adjust as needed
   product_attribute: z.union([clothingDto, electronicDto]) // Assuming IClothing and IElectronic are Zod schemas
 })

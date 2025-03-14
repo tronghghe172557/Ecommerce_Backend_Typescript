@@ -2,13 +2,14 @@ import { IClothingDto, IElectronicDto } from '~/modules/products/dtos'
 import { ICreateProductDto } from '~/modules/products/dtos'
 import { ClothingModel, ElectronicModel, ProductModel } from '~/modules/products/models'
 import { BadRequestException } from '~/base/common/exceptions'
+import { ProductType } from '../enums'
 
 export class ProductFactory {
   static async createProduct(type: string, product: ICreateProductDto) {
     switch (type) {
-      case 'Clothing':
+      case ProductType.Clothing:
         return await new Clothing(product).createProduct()
-      case 'Electronic':
+      case ProductType.Electronic:
         return await new Electronic(product).createProduct()
       default:
         throw new BadRequestException(`Invalid product type: ${type}`)
@@ -22,7 +23,7 @@ class Product {
   public product_description: string
   public product_price: number
   public product_quantity: number
-  public product_type: 'Clothing' | 'Electronics' | 'Furniture'
+  public product_type: ProductType.Clothing | ProductType.Electronic | ProductType.Furniture
   public product_shop: string
   public product_attribute: IClothingDto | IElectronicDto
 
