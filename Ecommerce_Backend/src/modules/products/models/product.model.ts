@@ -8,7 +8,7 @@ export interface IProduct extends BaseModel {
   product_name: string
   product_thumbnail: string
   product_description: string
-  product_price: string
+  product_price: number
   product_quantity: number
   product_type: 'Clothing' | 'Electronics' | 'Furniture'
   product_shop: string
@@ -29,7 +29,7 @@ const productSchema: Schema<IProduct> = new Schema({
     type: String
   },
   product_price: {
-    type: String,
+    type: Number,
     required: true
   },
   product_quantity: {
