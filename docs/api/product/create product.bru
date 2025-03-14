@@ -1,0 +1,28 @@
+meta {
+  name: create product
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3052/v1/api/product
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "product_name": "Áo hoddy 4",
+    "product_description": "Áo hoddy 4",
+    "product_price": 1234,
+    "product_shop": "67232dc34e652cfb2c351bda",
+    "product_type": "Clothing",
+    "product_thumb": "product_thumb",
+    "product_quantity": 1000,
+    "product_attributes": {
+        "brand": "Sweeter",
+        "size": "20 21 23",
+        "material": "Red"
+    }
+  } 
+}

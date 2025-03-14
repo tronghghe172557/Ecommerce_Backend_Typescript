@@ -1,6 +1,6 @@
 import { IClothingDto, IElectronicDto } from '~/modules/products/dtos'
 import { ICreateProductDto } from '~/modules/products/dtos'
-import { ClothingModel, ElectronicModel, ProductModel } from '../models'
+import { ClothingModel, ElectronicModel, ProductModel } from '~/modules/products/models'
 import { BadRequestException } from '~/base/common/exceptions'
 
 export class ProductFactory {
