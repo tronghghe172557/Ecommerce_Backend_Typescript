@@ -1,7 +1,8 @@
 import mongoose from 'mongoose'
 import { envVariables } from '~/base/common/utils/env.util'
+import { Logger } from '~/base/common/utils'
 const connectString = `mongodb://${envVariables.DEV_DB_HOST}:${envVariables.DEV_DB_PORT}/${envVariables.DEV_DB_NAME}`
-
+const logger = new Logger('Database')
 class Database {
   private static instance: Database | null = null
 
@@ -12,8 +13,8 @@ class Database {
   connect(type = 'mongodb') {
     mongoose
       .connect(connectString)
-      .then(() => console.log(`Connected to ${type} database successfully`))
-      .catch((err) => console.error(`Error connecting to ${type} database: ${err}`))
+      .then(() => logger.info(`Connected to ${type} database successfully!`))
+      .catch((err) => logger.fatal(`Error connecting to ${type} database: ${err}`))
   }
 
   static getInstance() {
@@ -28,7 +29,7 @@ class Database {
 // Đóng kết nối khi ứng dụng dừng
 process.on('SIGINT', async () => {
   await mongoose.connection.close()
-  console.log('❌ MongoDB connection closed')
+  logger.trace('❌ MongoDB connection closed')
   process.exit(0)
 })
 

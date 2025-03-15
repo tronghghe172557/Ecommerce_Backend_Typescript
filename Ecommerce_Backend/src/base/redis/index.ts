@@ -1,11 +1,12 @@
 import { Redis as RedisClient } from 'ioredis'
-
+import { Logger } from '~/base/common/utils/logger.util'
 import { envVariables } from '~/base/common/utils'
 
 class Redis {
   private instance: RedisClient
   private appCrashTimeoutId!: NodeJS.Timeout
   private readonly TIMEOUT = 10000
+  private logger = new Logger('Redis')
 
   constructor() {
     this.instance = new RedisClient({
@@ -16,22 +17,22 @@ class Redis {
     })
 
     this.instance.once('connecting', () => {
-      console.error('Connecting to redis...')
+      this.logger.info('Connecting to redis...')
     })
 
     this.instance.on('connect', () => {
-      console.error('Connected to redis successfully!')
+      this.logger.info('Connected to redis successfully!')
       if (this.appCrashTimeoutId) {
         clearTimeout(this.appCrashTimeoutId)
       }
     })
 
     this.instance.on('reconnecting', () => {
-      console.error('Reconnecting to redis...')
+      this.logger.info('Reconnecting to redis...')
     })
 
     this.instance.on('error', (err) => {
-      console.error(err)
+      this.logger.fatal(err)
     })
   }
 
@@ -39,9 +40,9 @@ class Redis {
     try {
       await this.instance.connect()
     } catch (err) {
-      console.error(err)
+      this.logger.fatal(err)
       this.appCrashTimeoutId = setTimeout(() => {
-        console.error(err)
+        this.logger.fatal(err)
       }, this.TIMEOUT)
     }
   }
