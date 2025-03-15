@@ -1,7 +1,7 @@
 meta {
-  name: create product
+  name: Create product
   type: http
-  seq: 1
+  seq: 2
 }
 
 post {
@@ -10,16 +10,22 @@ post {
   auth: none
 }
 
+headers {
+  x-api-key: 2e9ccd103016593dd62dcfc939525d9966581d371d132e2e64d0c77bcece35720c6d528616362697ee10c83ec7659fb5e35131ccecd7dcaa317cb1e698abb133
+  x-client-id: 984c06d4-e035-4308-9014-2eabaa78faf0
+  authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI5ODRjMDZkNC1lMDM1LTQzMDgtOTAxNC0yZWFiYWE3OGZhZjAiLCJyb2xlIjpbXSwiaWF0IjoxNzQyMDA2NjQzLCJleHAiOjE3NDIxNzk0NDN9.lduhvG7MTtGBGReTDgMZrh4jP4_HGXjt7HHP4mtCLmM
+}
+
 body:json {
   {
     "product_name": "Áo hoddy 4",
     "product_description": "Áo hoddy 4",
     "product_price": 1234,
-    "product_shop": "67232dc34e652cfb2c351bda",
+    "product_shop": "984c06d4-e035-4308-9014-2eabaa78faf0",
     "product_type": "Clothing",
-    "product_thumb": "product_thumb",
+    "product_thumbnail": "product_thumb",
     "product_quantity": 1000,
-    "product_attributes": {
+    "product_attribute": {
         "brand": "Sweeter",
         "size": "20 21 23",
         "material": "Red"

@@ -1,0 +1,21 @@
+meta {
+  name: get product search
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:3052/v1/api/product/search/:keySearch
+  body: json
+  auth: none
+}
+
+params:path {
+  keySearch: Table
+}
+
+headers {
+  x-api-key: 2e9ccd103016593dd62dcfc939525d9966581d371d132e2e64d0c77bcece35720c6d528616362697ee10c83ec7659fb5e35131ccecd7dcaa317cb1e698abb133
+  ~x-client-id: 6722458f69c66802e2f0cfae
+  ~authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzIyNDU4ZjY5YzY2ODAyZTJmMGNmYWUiLCJlbWFpbCI6InRyb25nQGdtYWlsLmNvbSIsImlhdCI6MTczMDY2MzYzNCwiZXhwIjoxNzMwODM2NDM0fQ.ejO7gO3tcRIdG097yMVFY0s9TOZpA5fhz729rIL1PyQ
+}

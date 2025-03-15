@@ -1,0 +1,34 @@
+meta {
+  name: patch update product
+  type: http
+  seq: 2
+}
+
+patch {
+  url: http://localhost:3052/v1/api/product/:productId
+  body: json
+  auth: none
+}
+
+params:path {
+  productId: 672ad90172ac34cf9c6df41d
+}
+
+headers {
+  x-api-key: 2e9ccd103016593dd62dcfc939525d9966581d371d132e2e64d0c77bcece35720c6d528616362697ee10c83ec7659fb5e35131ccecd7dcaa317cb1e698abb133
+  x-client-id: 6722458f69c66802e2f0cfae
+  authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzIyNDU4ZjY5YzY2ODAyZTJmMGNmYWUiLCJlbWFpbCI6InRyb25nQGdtYWlsLmNvbSIsImlhdCI6MTczMDg1ODE0NiwiZXhwIjoxNzMxMDMwOTQ2fQ.0cBgoYGZBoCkJvKH0lFNKfYUhigRZRix1P6L4LzFw38
+}
+
+body:json {
+  {
+    "product_attributes": {
+        "brand": "Furniture Viet Nam 2",
+        "size": "10",
+        "material": null
+    },
+    "product_name": "Table 9999 Max",
+    "product_price": null,
+    "product_type": "Furniture"
+  }
+}

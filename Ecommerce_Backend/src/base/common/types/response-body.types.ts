@@ -6,7 +6,7 @@ export type SuccessResponseBody<T> = T extends unknown[]
   : { data: T }
 
 export type FailedResponseBody = {
-  message?: string
+  message?: string | string[]
   errorName: string
   statusCode: HttpStatusCode
 }

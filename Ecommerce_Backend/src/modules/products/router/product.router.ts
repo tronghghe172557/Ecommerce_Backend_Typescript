@@ -1,4 +1,6 @@
 import { Router } from 'express'
+import { asyncHandler } from '~/base/common/handlers'
+import { AuthGuard } from '~/base/common/utils'
 import { ProductController } from '~/modules/products/controllers'
 const productRouter = Router()
 
@@ -9,6 +11,7 @@ productRouter.get('/all-publish', ProductController.getAllPublishProduct)
 productRouter.get('/search', ProductController.getListSearchProduct)
 
 // AuthGuard
-productRouter.post('', ProductController.createProduct)
+productRouter.use(AuthGuard)
+productRouter.post('', asyncHandler(ProductController.createProduct))
 
 export { productRouter }

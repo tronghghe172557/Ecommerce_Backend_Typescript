@@ -1,11 +1,12 @@
 import { appRouter } from './base/router/app.router'
-import express, { NextFunction, Request, Response } from 'express'
+import express from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'
 import Database from '~/base/database'
 import { redis } from '~/base/redis'
-import { Logger } from '~/base/common/utils'
+import { envVariables, Logger } from '~/base/common/utils'
+import { HttpExceptionHandler } from '~/base/common/handlers'
 
 const app = express()
 const logger = new Logger('Server')
@@ -31,19 +32,10 @@ redis.connect()
 app.use('/v1/api', appRouter)
 
 // func handle error
-app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
-  const statusCode = 500
-  
-  res.status(statusCode).json({
-    status: 'error',
-    code: statusCode,
-    stack: error.stack,
-    message: error.message || 'Internal Server Error in app'
-  })
-})
+app.use(HttpExceptionHandler)
 
 // Chạy server
-const PORT = process.env.PORT || 3000
+const PORT = envVariables.PORT || 3000
 app.listen(PORT, () => {
   logger.info(`Server is running on http://localhost:${PORT}`)
 })
