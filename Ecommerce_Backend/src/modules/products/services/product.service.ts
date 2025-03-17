@@ -1,20 +1,39 @@
+import { v4 as uuidv4 } from 'uuid'
+
 import { IClothingDto, IElectronicDto } from '~/modules/products/dtos'
 import { ICreateProductDto } from '~/modules/products/dtos'
 import { ClothingModel, ElectronicModel, ProductModel } from '~/modules/products/models'
 import { BadRequestException } from '~/base/common/exceptions'
-import { ProductType } from '../enums'
+import { ProductType } from '~/modules/products/enums'
 
 export class ProductFactory {
-  static async createProduct(type: string, product: ICreateProductDto) {
-    switch (type) {
-      case ProductType.Clothing:
-        return await new Clothing(product).createProduct()
-      case ProductType.Electronic:
-        return await new Electronic(product).createProduct()
-      default:
-        throw new BadRequestException(`Invalid product type: ${type}`)
-    }
+  // OPTIMIZE: Refactor this method to use a factory pattern
+  static productRegistry: Record<string, typeof Product> = {}
+
+  static registerProduct(type: string, classRef: typeof Product) {
+    ProductFactory.productRegistry[type] = classRef
   }
+
+  //
+  static async createProduct(type: string, payload: ICreateProductDto) {
+    const productClass = ProductFactory.productRegistry[type]
+
+    if (!productClass) throw new BadRequestException(`Invalid Product Types: ${type} in ProductFactory`)
+
+    // productClass(payload) ->Ex: new Clothing(payload)
+    return new productClass(payload).createProduct()
+  }
+
+  // static async createProduct(type: string, product: ICreateProductDto) {
+  //   switch (type) {
+  //     case ProductType.Clothing:
+  //       return await new Clothing(product).createProduct()
+  //     case ProductType.Electronic:
+  //       return await new Electronic(product).createProduct()
+  //     default:
+  //       throw new BadRequestException(`Invalid product type: ${type}`)
+  //   }
+  // }
 }
 
 class Product {
@@ -47,8 +66,8 @@ class Product {
     this.product_attribute = product_attribute
   }
 
-  async createProduct() {
-    return await ProductModel.create(this)
+  async createProduct(product_id: string = uuidv4()) {
+    return await ProductModel.create({ ...this, _id: product_id })
   }
 }
 
@@ -61,7 +80,7 @@ class Clothing extends Product {
       throw new BadRequestException('Failed to create clothing')
     }
 
-    const newProduct = super.createProduct()
+    const newProduct = super.createProduct(newClothing._id)
 
     if (!newProduct) {
       throw new BadRequestException('Failed to create product')
@@ -79,7 +98,7 @@ class Electronic extends Product {
       throw new BadRequestException('Failed to create electronic')
     }
 
-    const newProduct = super.createProduct()
+    const newProduct = super.createProduct(newElectronic._id)
     if (!newProduct) {
       throw new BadRequestException('Failed to create product')
     }
@@ -87,3 +106,7 @@ class Electronic extends Product {
     return newProduct
   }
 }
+
+// register product type
+ProductFactory.registerProduct('Clothing', Clothing)
+ProductFactory.registerProduct('Electronics', Electronic)
