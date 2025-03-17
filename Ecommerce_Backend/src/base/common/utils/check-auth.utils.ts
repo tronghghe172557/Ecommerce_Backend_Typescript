@@ -6,6 +6,9 @@ import jwt from 'jsonwebtoken'
 import { getHeader } from './helper.util'
 import { findApiKeyByKey } from '~/modules/auth/services'
 import { verifyToken } from '~/modules/auth/utils'
+import { Logger } from './logger.util'
+
+const logger = new Logger('check-auth.utils')
 export interface IHeader {
   API_KEY: string
   AUTHORIZATION: string
@@ -46,7 +49,7 @@ const apiKey = async (req: Request, res: Response, next: NextFunction): Promise<
       return
     }
 
-    console.log('Pass API key middleware')
+    logger.info('Pass API key middleware')
     req.objKey = objKey
     next() //
   } catch (error) {
@@ -82,7 +85,7 @@ const permission = (permission: string) => {
       return Promise.resolve() // Giải quyết lỗi TypeScript
     }
 
-    console.log('Pass permission key middleware')
+    logger.info('Pass permission key middleware')
     next() // Đảm bảo next() được gọi nếu có quyền
   }
 }

@@ -11,7 +11,15 @@ const baseProductSchema = z.object({
   product_quantity: z.coerce.number(),
   product_type: z.enum([ProductType.Clothing, ProductType.Electronic, ProductType.Furniture]),
   product_shop: z.string(), // Assuming product_shop is a string, adjust as needed
-  product_attribute: z.union([clothingDto, electronicDto]) // Assuming IClothing and IElectronic are Zod schemas
+  product_attribute: z.union([clothingDto, electronicDto]), // Assuming IClothing and IElectronic are Zod schemas,
+  product_ratingAverage: z.coerce.number(),
+  product_slug: z.string().nullable(),
+  product_variants: z
+    .array(z.union([clothingDto, electronicDto]))
+    .default([])
+    .nullable(),
+  isDraft: z.boolean().default(true),
+  isPublished: z.boolean().default(false)
 })
 
 export const productDto = baseProductSchema.transform((data) => data)

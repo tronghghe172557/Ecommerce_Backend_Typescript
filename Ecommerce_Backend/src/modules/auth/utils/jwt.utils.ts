@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken'
 import { BadRequestException } from '~/base/common/exceptions'
+import { Logger } from '~/base/common/utils/logger.util'
 
+const logger = new Logger('JWT')
 // T là 1 kiểu dữ liệu bất kỳ
 export interface IToken<T> {
   payload?: T
@@ -31,8 +33,8 @@ const createKeyTokenPair = async <T extends object>(
 }
 
 const verifyToken = async <T extends object>(token: string, privateKey: string): Promise<T> => {
-  console.log('token', token)
-  console.log('privateKey', privateKey)
+  logger.info(`token: ${token}`)
+  logger.info(`privateKey: ${privateKey}`)
   try {
     const decoded = jwt.verify(token, privateKey) as T
     return decoded

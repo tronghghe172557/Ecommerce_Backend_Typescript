@@ -3,6 +3,9 @@ import { config } from 'dotenv'
 import { z } from 'zod'
 import { fromZodError } from 'zod-validation-error'
 
+import { Logger } from '~/base/common/utils/logger.util'
+const logger = new Logger('Env')
+
 config({
   path: ['.env.local', '.env']
 })
@@ -33,7 +36,7 @@ const parseResult = envSchema.safeParse(process.env)
 
 if (!parseResult.success) {
   const validationError = fromZodError(parseResult.error)
-  console.log('Error parsing environment variables:', validationError)
+  logger.error(`Error parsing environment variables: ${validationError}`)
   process.exit(1)
 }
 
