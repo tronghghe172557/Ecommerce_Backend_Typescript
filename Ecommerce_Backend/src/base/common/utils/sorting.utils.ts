@@ -48,6 +48,22 @@ export class SortingUtils {
    * @param {TPayload} payload - The payload containing the sorting information.
    * @param {string | string[]} payload.sorting - The sorting information, either as a comma-separated string or an array of strings.
    * @returns The transformed payload with the sorting information structured as an array of {@link Sorting} objects.
+   *
+   * * @example
+   * ```typescript
+   * const payload = {
+  sorting: 'product_name:asc,product_price:desc',
+  otherField: 'someValue'
+  }
+   * return 
+   *{
+   *otherField: 'someValue',
+   * sorting: [
+    * { field: 'product_name', direction: 'asc' },
+    * { field: 'product_price', direction: 'desc' }
+   *]
+   *}
+   * ```
    */
   public static transformSorting<TPayload extends PayloadWithRawSorting>({
     sorting,

@@ -2,6 +2,7 @@ import { createProductDto } from '~/modules/products/dtos'
 import { Request, Response } from 'express'
 import { HttpStatusCode } from '~/base/common/enums'
 import { ProductFactory } from '~/modules/products/services'
+import { queryQueryProductDto } from '~/modules/products/dtos'
 export class ProductController {
   /**
    * `[POST] /api/v1/products`
@@ -27,10 +28,23 @@ export class ProductController {
   }
 
   /**
-   * `[GET] /api/v1/products/draft`
+   * `[GET] /api/v1/products/`
    */
-  static getAllDraftProduct = () => {
+  static getProducts = async (req: Request, res: Response) => {
     // TO DO CODE
+    const dto = queryQueryProductDto.parse(req.query)
+    res.status(HttpStatusCode.OK).json(await ProductFactory.getProduct(dto, false))
+  }
+
+  /**
+   * `[GET] /api/v1/products/deleted`
+   */
+  static getProductDeleted = async (req: Request, res: Response) => {
+    // TO DO CODE
+    const dto = queryQueryProductDto.parse(req.query)
+    console.log('dto', dto)
+
+    res.status(HttpStatusCode.OK).json(await ProductFactory.getProductDeleted(dto, true))
   }
 
   /**

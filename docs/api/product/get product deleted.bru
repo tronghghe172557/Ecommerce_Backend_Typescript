@@ -1,0 +1,15 @@
+meta {
+  name: get product deleted
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://localhost:3052/v1/api/product/deleted?deleted=2025-03-17T07:38:10.956+00:00
+  body: none
+  auth: none
+}
+
+params:query {
+  deleted: 2025-03-17T07:38:10.956+00:00
+}

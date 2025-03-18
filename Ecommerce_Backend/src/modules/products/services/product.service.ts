@@ -1,10 +1,19 @@
 import { v4 as uuidv4 } from 'uuid'
+import { RootFilterQuery, SortOrder } from 'mongoose'
 
-import { IClothingDto, IElectronicDto } from '~/modules/products/dtos'
+import {
+  deleteProductDto,
+  IClothingDto,
+  IElectronicDto,
+  IProductDto,
+  IQueryProductDto,
+  productDto
+} from '~/modules/products/dtos'
 import { ICreateProductDto } from '~/modules/products/dtos'
-import { ClothingModel, ElectronicModel, ProductModel } from '~/modules/products/models'
+import { ClothingModel, ElectronicModel, IProduct, ProductModel } from '~/modules/products/models'
 import { BadRequestException } from '~/base/common/exceptions'
 import { ProductType } from '~/modules/products/enums'
+import { SuccessResponseBody } from '~/base/common/types'
 
 export class ProductFactory {
   // OPTIMIZE: Refactor this method to use a factory pattern
@@ -13,6 +22,9 @@ export class ProductFactory {
   static registerProduct(type: string, classRef: typeof Product) {
     ProductFactory.productRegistry[type] = classRef
   }
+
+  // FUNCTION
+  // static getProdcut(commonQuery: IQueryProductDto & { deleted?: false }): Promise<SuccessResponseBody<IProductDto[]>>
 
   //
   static async createProduct(type: string, payload: ICreateProductDto) {
@@ -24,16 +36,54 @@ export class ProductFactory {
     return new productClass(payload).createProduct()
   }
 
-  // static async createProduct(type: string, product: ICreateProductDto) {
-  //   switch (type) {
-  //     case ProductType.Clothing:
-  //       return await new Clothing(product).createProduct()
-  //     case ProductType.Electronic:
-  //       return await new Electronic(product).createProduct()
-  //     default:
-  //       throw new BadRequestException(`Invalid product type: ${type}`)
-  //   }
-  // }
+  static async getProduct(
+    { page, pageSize, sorting, deleted }: IQueryProductDto,
+    isDeleted: boolean
+  ): Promise<SuccessResponseBody<IProductDto[]>> {
+    // 1. query filter
+    const queryFilter: RootFilterQuery<IProduct> = {
+      deleteTimestamp: isDeleted ? { $ne: null } : null
+    }
+
+    // 2. To do: add more query filter: limit, skip, sort, ....
+    const query = ProductModel.find(queryFilter)
+      .limit(pageSize)
+      .skip(pageSize * (page - 1))
+      .sort(
+        sorting.map(({ field, direction }) => {
+          return [field, direction] as [string, SortOrder]
+        })
+      )
+
+    // 3. get product by query
+    const products = await query.exec()
+
+    // 4. count total product, total page
+    const total = await ProductModel.countDocuments(queryFilter).exec()
+    const totalPage = Math.ceil(total / pageSize)
+
+    return {
+      data: products.map((product) => (deleted ? deleteProductDto.parse(product) : productDto.parse(product))),
+      meta: {
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPage,
+          hasPreviousPage: page > 1,
+          hasNextPage: page < totalPage
+        },
+        sorting
+      }
+    }
+  }
+
+  static async getProductDeleted(
+    { page, pageSize, sorting, deleted }: IQueryProductDto,
+    isDeleted: boolean
+  ): Promise<SuccessResponseBody<IProductDto[]>> {
+    return this.getProduct({ page, pageSize, sorting, deleted }, isDeleted)
+  }
 }
 
 class Product {
@@ -45,6 +95,11 @@ class Product {
   public product_type: ProductType.Clothing | ProductType.Electronic | ProductType.Furniture
   public product_shop: string
   public product_attribute: IClothingDto | IElectronicDto
+  public product_ratingAverage: number
+  public product_slug?: string
+  public product_variants?: []
+  public isDraft?: boolean
+  public isPublished?: boolean
 
   constructor({
     product_name,
@@ -54,7 +109,8 @@ class Product {
     product_quantity,
     product_type,
     product_shop,
-    product_attribute
+    product_attribute,
+    product_ratingAverage
   }: ICreateProductDto) {
     this.product_name = product_name
     this.product_thumbnail = product_thumbnail
@@ -64,6 +120,7 @@ class Product {
     this.product_type = product_type
     this.product_shop = product_shop
     this.product_attribute = product_attribute
+    this.product_ratingAverage = product_ratingAverage
   }
 
   async createProduct(product_id: string = uuidv4()) {
