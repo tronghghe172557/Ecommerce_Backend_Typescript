@@ -10,10 +10,10 @@ import { Logger } from './logger.util'
 
 const logger = new Logger('check-auth.utils')
 export interface IHeader {
-  API_KEY: string
-  AUTHORIZATION: string
-  CLIENT_ID: string
-  REFRESH_TOKEN: string
+  API_KEY?: string
+  AUTHORIZATION?: string
+  CLIENT_ID?: string
+  REFRESH_TOKEN?: string
 }
 
 export enum HEADER {
@@ -136,7 +136,7 @@ const AuthGuard = asyncHandler(async (req: Request, res: Response, next: NextFun
   }
 
   // access token exist
-  const accessToken = req.headers[HEADER.AUTHORIZATION]?.toString()
+  const accessToken = req.headers[HEADER.AUTHORIZATION]?.toString()?.replaceAll('Bearer ', '')
   if (!accessToken) {
     throw new NotFoundException('Access Token is required')
   }

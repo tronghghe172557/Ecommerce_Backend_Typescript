@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt'
 import { IShop, ShopModel, KeyTokenModel } from '~/modules/auth/models'
 import crypto from 'crypto'
 import { KeyTokenService } from '~/modules/auth/services'
-import { BadRequestException } from '~/base/common/exceptions'
+import { BadRequestException, UnauthorizedException } from '~/base/common/exceptions'
 import { createKeyTokenPair } from '~/modules/auth/utils'
 import {
   LoginRequestDto,
@@ -22,7 +22,7 @@ class AccessService {
   private static readonly TIMEOUT = 60 * 60 * 24 * 30 // 30 days
 
   static login = async ({ email, password }: LoginRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
-   // 1. check email exist
+    // 1. check email exist
     const foundShop = await findShopByEmail(email)
     if (!foundShop) {
       throw new BadRequestException('Email not found')
@@ -31,7 +31,7 @@ class AccessService {
     // 2. check password
     const match = await bcrypt.compare(password, foundShop.password)
     if (!match) {
-      throw new BadRequestException('Password is incorrect')
+      throw new UnauthorizedException('Password is incorrect')
     }
 
     // 3. create token => accessToken, refreshToken
@@ -126,11 +126,11 @@ class AccessService {
   static logout = async (keyId: string): Promise<void> => {
     // delete keyToken from db
     const keyToken = await KeyTokenModel.findByIdAndDelete(keyId)
-    if (keyToken) {
-      // relocate refreshToken to blacklist
-      await redis.getInstance().set(keyId, this.BLACKLISTED, 'EX', this.TIMEOUT)
+    if (!keyToken) {
+      throw new BadRequestException('KeyToken not found')
     }
-    throw new BadRequestException('KeyToken not found')
+    // relocate refreshToken to blacklist
+    await redis.getInstance().set(keyId, this.BLACKLISTED, 'EX', this.TIMEOUT)
   }
 
   static refreshToken = async ({

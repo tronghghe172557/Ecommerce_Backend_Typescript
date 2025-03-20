@@ -33,12 +33,11 @@ const createKeyTokenPair = async <T extends object>(
 }
 
 const verifyToken = async <T extends object>(token: string, privateKey: string): Promise<T> => {
-  logger.info(`token: ${token}`)
-  logger.info(`privateKey: ${privateKey}`)
   try {
     const decoded = jwt.verify(token, privateKey) as T
     return decoded
   } catch (error) {
+    logger.error(`Token is invalid: ${error instanceof Error && error.message}`)
     throw new BadRequestException(`Token is invalid: ${error instanceof Error && error.message}`)
   }
 }

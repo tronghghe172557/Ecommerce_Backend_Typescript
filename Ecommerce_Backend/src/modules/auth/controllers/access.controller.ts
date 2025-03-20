@@ -1,5 +1,5 @@
 import { AccessService } from '~/modules/auth/services'
-import { loginRequestDto, signupRequestDto } from '~/modules/auth/dtos'
+import { loginRequestDto, refreshRequestDto, signupRequestDto } from '~/modules/auth/dtos'
 import { Request, Response } from 'express'
 import { HttpStatusCode } from '~/base/common/enums'
 
@@ -31,6 +31,13 @@ export class AccessController {
    * `[POST] /api/v1/auth/handleRefreshToken`
    */
   static handleRefreshToken = async (req: Request, res: Response) => {
-    res.status(HttpStatusCode.OK).json(await AccessService.refreshToken(req.body))
+    const dto = refreshRequestDto.parse(req.body)
+    const keyStore = req?.keyStore
+
+    if (!keyStore) {
+      res.status(HttpStatusCode.UNAUTHORIZED).json({ message: 'Unauthorized' })
+      return
+    }
+    res.status(HttpStatusCode.OK).json(await AccessService.refreshToken({ ...dto, keyStore }))
   }
 }
