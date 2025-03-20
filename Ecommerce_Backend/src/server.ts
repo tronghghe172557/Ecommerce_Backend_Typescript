@@ -7,6 +7,7 @@ import Database from '~/base/database'
 import { redis } from '~/base/redis'
 import { envVariables, Logger } from '~/base/common/utils'
 import { HttpExceptionHandler } from '~/base/common/handlers'
+import { configSwagger } from '~/base/swagger'
 
 const bootstrap = async () => {
   const app = express()
@@ -31,6 +32,9 @@ const bootstrap = async () => {
 
   // Route cơ bản
   app.use('/v1/api', appRouter)
+
+  // swagger
+  configSwagger(app)
 
   // func handle error
   app.use(HttpExceptionHandler)

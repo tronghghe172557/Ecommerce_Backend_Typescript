@@ -1,0 +1,156 @@
+openapi: 3.0.0
+info:
+  title: E-commerce Shop API
+  version: 1.0.0
+  description: |-
+    This is API documentation for E-commerce Shop. It is individual project for learning about Service Side with NodeJS, ExpressJS, MongoDB.
+
+    Author: Hoàng Gia Trọng
+
+    The source code is available at [Github-Ecommerce_Backend_Typescript](https://github.com/tronghghe172557/Ecommerce_Backend_Typescript)
+  contact:
+    name: Hoàng Gia Trọng
+    email: hoanggiatrang01@gmail.com
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:3052/
+tags:
+  - name: auth
+    description: Authentication & Authorization
+  - name: Product
+    description: Production
+paths:
+  /v1/api/auth/login:
+    post:
+      summary: Login to the system
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/LoginRequestDto"
+      responses:
+        "201":
+          description: Login successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/LoginSuccessDto"
+        "400":
+          description: Username or password is missing/invalid
+        "401":
+          description: Username or password is incorrect
+components:
+  # schema: define data models that reuse in many endpoint
+  schemas:
+    LoginRequestDto:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          example: trong@gmail.com
+        password:
+          type: string
+          example: 123
+    LoginSuccessDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: aa2158c7-5bd1-477b-8606-7e96ea09e334
+        role:
+          $ref: "#/components/schemas/Role"
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYzczOWJkNi02ZGNlLTQzYWYtOTFkYi1iNzg2YmQwMWVkNzkiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NDA1MDI3NDEsImV4cCI6MTc0MDUwNjM0MX0.Mgl-FANwtPMGhO3_HeOeoBFn2PoEYfSYsC4ECFgl0TE
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYzczOWJkNi02ZGNlLTQzYWYtOTFkYi1iNzg2YmQwMWVkNzkiLCJpYXQiOjE3NDA1MDI3NDEsImV4cCI6MTc0MzA5NDc0MX0.GWRNcc0jLR9KN97nH36W6gFqDRAV4PNycD_w8jcezXg
+    Role:
+      type: string
+      enum:
+        - SHOP
+        - WRITER
+        - EDITOR
+        - ADMIN
+  # parameters: it defines parameter that reuse in endpoints
+  parameters:
+    page:
+      name: page
+      in: query
+      description: The current page number
+      required: false
+      schema:
+        type: integer
+        default: 1
+    pageSize:
+      name: pageSize
+      in: query
+      description: The number of items per page
+      required: false
+      schema:
+        type: integer
+        default: 10
+    sorting:
+      name: sorting
+      in: query
+      description: The sorting for the query. The syntax is `{field}:{order}`,
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          default: createTimestamp:desc
+    fromCreateTimestamp:
+      name: fromCreateTimestamp
+      in: query
+      description: Every items created after this timestamp will be returned
+      example: 2025-01-01T00:00:00Z
+      required: false
+      schema:
+        type: string
+        format: date-time
+    toCreateTimestamp:
+      name: toCreateTimestamp
+      in: query
+      description: Every items created before this timestamp will be returned
+      example: 2025-12-31T00:00:00Z
+      required: false
+      schema:
+        type: string
+        format: date-time
+    fromDeleteTimestamp:
+      name: fromDeleteTimestamp
+      in: query
+      description: Every items deleted after this timestamp will be returned
+      example: 2025-01-01T00:00:00Z
+      required: false
+      schema:
+        type: string
+        format: date-time
+    toDeleteTimestamp:
+      name: toDeleteTimestamp
+      in: query
+      description: Every items deleted before this timestamp will be returned
+      example: 2025-12-31T00:00:00Z
+      required: false
+      schema:
+        type: string
+        format: date-time
+  # security with jwt
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

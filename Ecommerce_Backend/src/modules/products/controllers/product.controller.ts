@@ -42,8 +42,6 @@ export class ProductController {
   static getProductDeleted = async (req: Request, res: Response) => {
     // TO DO CODE
     const dto = queryQueryProductDto.parse(req.query)
-    console.log('dto', dto)
-
     res.status(HttpStatusCode.OK).json(await ProductFactory.getProductDeleted(dto, true))
   }
 
