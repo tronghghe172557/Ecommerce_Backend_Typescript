@@ -22,6 +22,7 @@ tags:
   - name: Product
     description: Production
 paths:
+  # AUTHENTICATION
   /v1/api/auth/login:
     post:
       summary: Login to the system
@@ -47,9 +48,71 @@ paths:
           description: Username or password is missing/invalid
         "401":
           description: Username or password is incorrect
+  /v1/api/auth/signUp:
+    post:
+      summary: Sign up for a new account
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupRequestDto"
+      responses:
+        "201":
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SignupSuccessDto"
+        "400":
+          description: Invalid input data
+  /v1/api/auth/logout:
+    get:
+      summary: Logout from the system
+      tags:
+        - auth
+      security:
+        - JWT: []
+      responses:
+        "200":
+          description: Logout successfully
+        "401":
+          description: Unauthorized
+  /v1/api/auth/handle-refreshToken:
+    post:
+      summary: Handle refresh token
+      tags:
+        - auth
+      security:
+        - JWT: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/RefreshRequestDto"
+      responses:
+        "200":
+          description: Refresh token handled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshSuccessDto"
+        "400":
+          description: Invalid refresh token
+        "401":
+          description: Unauthorized
+
+  # PRODUCT
 components:
   # schema: define data models that reuse in many endpoint
   schemas:
+    # AUTHENTICATION
     LoginRequestDto:
       type: object
       required:
@@ -77,6 +140,65 @@ components:
         refreshToken:
           type: string
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYzczOWJkNi02ZGNlLTQzYWYtOTFkYi1iNzg2YmQwMWVkNzkiLCJpYXQiOjE3NDA1MDI3NDEsImV4cCI6MTc0MzA5NDc0MX0.GWRNcc0jLR9KN97nH36W6gFqDRAV4PNycD_w8jcezXg
+    SignupRequestDto:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          example: Hoàng Gia Trọng
+        email:
+          type: string
+          example: trong@gmail.com
+        password:
+          type: string
+          example: 123
+    SignupSuccessDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: aa2158c7-5bd1-477b-8606-7e96ea09e334
+        name:
+          type: string
+          example: Hoàng Gia Trọng
+        email:
+          type: string
+          example: trong@gmail.com
+        role:
+          $ref: "#/components/schemas/Role"
+    RefreshRequestDto:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYzczOWJkNi02ZGNlLTQzYWYtOTFkYi1iNzg2YmQwMWVkNzkiLCJpYXQiOjE3NDA1MDI3NDEsImV4cCI6MTc0MzA5NDc0MX0.GWRNcc0jLR9KN97nH36W6gFqDRAV4PNycD_w8jcezXg
+    RefreshSuccessDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: aa2158c7-5bd1-477b-8606-7e96ea09e334
+        role:
+          type: array
+          items:
+            type: string
+          example: ["USER"]
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYzczOWJkNi02ZGNlLTQzYWYtOTFkYi1iNzg2YmQwMWVkNzkiLCJpYXQiOjE3NDA1MDI3NDEsImV4cCI6MTc0MDUwNjM0MX0.Mgl-FANwtPMGhO3_HeOeoBFn2PoEYfSYsC4ECFgl0TE
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYzczOWJkNi02ZGNlLTQzYWYtOTFkYi1iNzg2YmQwMWVkNzkiLCJpYXQiOjE3NDA1MDI3NDEsImV4cCI6MTc0MzA5NDc0MX0.GWRNcc0jLR9KN97nH36W6gFqDRAV4PNycD_w8jcezXg
+
+    #ROLE
     Role:
       type: string
       enum:
