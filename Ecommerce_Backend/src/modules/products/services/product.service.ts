@@ -14,6 +14,8 @@ import { ClothingModel, ElectronicModel, IProduct, ProductModel } from '~/module
 import { BadRequestException } from '~/base/common/exceptions'
 import { ProductType } from '~/modules/products/enums'
 import { SuccessResponseBody } from '~/base/common/types'
+import { UpdateProductDto } from '~/modules/products/dtos'
+import { updateNestedObjectParse } from '../utils'
 
 export class ProductFactory {
   // OPTIMIZE: Refactor this method to use a factory pattern
@@ -97,7 +99,24 @@ export class ProductFactory {
     }
   }
 
-  static async updateProduct() {}
+  static async updateProduct(type: string, productId: string, updateProduct: UpdateProductDto) {
+    /*
+      1. check product exist
+      2. update product
+      3. return
+    */
+    const productClass = ProductFactory.productRegistry[type]
+    if (!productClass) throw new BadRequestException(`Invalid Product Types: ${type} in ProductFactory`)
+
+    // 1. check product exist
+    const product = await ProductModel.findById(productId).lean().exec()
+    if (!product) throw new BadRequestException(`Product not found: ${productId}`)
+    // 2. update product
+    // issue: updateProduct ở đây chỉ là những trường cần update, không phải là toàn bộ product
+    // -> khi new productClass mới -> các trường có thể undefined
+    // -> use static method to update product
+    return productClass.updateProduct(productId, updateProduct)
+  }
 
   static async publishProduct() {}
   static async unpublishProduct() {}
@@ -146,6 +165,10 @@ class Product {
   async createProduct(product_id: string = uuidv4()) {
     return await ProductModel.create({ ...this, _id: product_id })
   }
+
+  static async updateProduct(productId: string, updateProduct: object) {
+    return await ProductModel.findByIdAndUpdate(productId, updateProduct, { new: true }).lean().exec()
+  }
 }
 
 class Clothing extends Product {
@@ -165,6 +188,19 @@ class Clothing extends Product {
 
     return newProduct
   }
+
+  static async updateProduct(productId: string, updateProduct: UpdateProductDto) {
+    // 1. update clothing'
+    if (updateProduct.product_attribute) {
+      const bodyUpdate = updateNestedObjectParse(updateProduct.product_attribute)
+
+      // find clothing by product_id beacause product_id and clothing_id are the same
+      await ClothingModel.findByIdAndUpdate(productId, bodyUpdate, { new: true }).lean().exec()
+    }
+
+    // 2. update product
+    return await super.updateProduct(productId, updateNestedObjectParse(updateProduct))
+  }
 }
 class Electronic extends Product {
   // @override
@@ -181,6 +217,20 @@ class Electronic extends Product {
     }
 
     return newProduct
+  }
+
+  static async updateProduct(productId: string, updateProduct: UpdateProductDto) {
+    // 1. update clothing'
+    if (updateProduct.product_attribute) {
+      const bodyUpdate = updateNestedObjectParse(updateProduct.product_attribute)
+
+      // find clothing by product_id beacause product_id and clothing_id are the same
+      // làm phẳng dữ liệu khi truyền vào để không ghi đè hết lên product_attribute mà chỉ ghi đè những trường cần update
+      await ElectronicModel.findByIdAndUpdate(productId, bodyUpdate, { new: true }).lean().exec()
+    }
+
+    // 2. update product
+    return await super.updateProduct(productId, updateNestedObjectParse(updateProduct))
   }
 }
 

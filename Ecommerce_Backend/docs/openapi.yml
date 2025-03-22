@@ -111,6 +111,44 @@ paths:
           description: Unauthorized
 
   # PRODUCT
+  /v1/api/product/{productId}:
+    put:
+      summary: Update an existing product
+      tags:
+        - Product
+      security:
+        - JWT: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+          schema:
+            type: string
+          description: The ID of the product to update
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductDto"
+      responses:
+        "200":
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/UpdateProductDto"
+        "400":
+          description: Invalid input data
+        "401":
+          description: Unauthorized
+        "404":
+          description: Product not found
 components:
   # schema: define data models that reuse in many endpoint
   schemas:
@@ -200,6 +238,48 @@ components:
           type: string
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYzczOWJkNi02ZGNlLTQzYWYtOTFkYi1iNzg2YmQwMWVkNzkiLCJpYXQiOjE3NDA1MDI3NDEsImV4cCI6MTc0MzA5NDc0MX0.GWRNcc0jLR9KN97nH36W6gFqDRAV4PNycD_w8jcezXg
 
+    # PRODUCT
+    UpdateProductDto:
+      type: object
+      properties:
+        product_name:
+          type: string
+        product_thumbnail:
+          type: string
+        product_description:
+          type: string
+        product_price:
+          type: number
+        product_quantity:
+          type: number
+        product_type:
+          type: string
+          enum:
+            - Clothing
+            - Electronic
+            - Furniture
+        product_attribute:
+          type: object
+          properties:
+            brand:
+              type: string
+              example: "update-product"
+            size:
+              type: string
+              example: "update-product"
+            material:
+              type: string
+              example: "update-product"
+        product_ratingAverage:
+          type: number
+        product_variants:
+          type: array
+          items:
+            type: object
+        isDraft:
+          type: boolean
+        isPublished:
+          type: boolean
     #ROLE
     Role:
       type: string
@@ -278,6 +358,7 @@ components:
       required: false
       schema:
         type: string
+      example: 984c06d4-e035-4308-9014-2eabaa78faf0
       description: Client ID header - ShopId
     AuthorizationHeader:
       name: authorization

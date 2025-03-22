@@ -8,20 +8,20 @@ const productRouter = Router()
     ROUTER: /api/v1/product
 */
 
-productRouter.get('/', ProductController.getProducts)
-productRouter.get('/deleted', ProductController.getProductDeleted)
+productRouter.get('/', asyncHandler(ProductController.getProducts))
+productRouter.get('/deleted', asyncHandler(ProductController.getProductDeleted))
 
-productRouter.get('/:productId', ProductController.getProductById)
+productRouter.get('/:productId', asyncHandler(ProductController.getProductById))
 
 // AuthGuard
 productRouter.use(AuthGuard)
-productRouter.use('/unpublish-product', ProductController.unPublishProductByShop)
+productRouter.use('/unpublish-product', asyncHandler(ProductController.unPublishProductByShop))
 productRouter.post('', asyncHandler(ProductController.createProduct))
 
-productRouter.put('/:productId', ProductController.updateProduct)
-productRouter.post('/:productId/publish-product', ProductController.publishProduct)
-productRouter.post('/:productId/unpublish-product', ProductController.unPublishProductByShop)
+productRouter.put('/:productId', asyncHandler(ProductController.updateProduct))
+productRouter.post('/:productId/publish-product', asyncHandler(ProductController.publishProduct))
+productRouter.post('/:productId/unpublish-product', asyncHandler(ProductController.unPublishProductByShop))
 
-productRouter.delete('/:productId/delete-product', ProductController.deleteProduct)
-productRouter.post('/:productId/restore-product', ProductController.restoreProduct)
+productRouter.delete('/:productId/delete-product', asyncHandler(ProductController.deleteProduct))
+productRouter.post('/:productId/restore-product', asyncHandler(ProductController.restoreProduct))
 export { productRouter }

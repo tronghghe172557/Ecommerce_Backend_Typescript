@@ -1,4 +1,4 @@
-import { createProductDto } from '~/modules/products/dtos'
+import { createProductDto, updateProductDto } from '~/modules/products/dtos'
 import { Request, Response } from 'express'
 import { HttpStatusCode } from '~/base/common/enums'
 import { ProductFactory } from '~/modules/products/services'
@@ -51,7 +51,8 @@ export class ProductController {
    * `[PUT] /api/v1/products/:productId`
    */
   static updateProduct = async (req: Request, res: Response) => {
-    res.status(HttpStatusCode.OK).json(await ProductFactory.updateProduct)
+    const dto = updateProductDto.parse(req.body)
+    res.status(HttpStatusCode.OK).json(await ProductFactory.updateProduct(dto.product_type, req.params.productId!, dto))
   }
 
   /**
