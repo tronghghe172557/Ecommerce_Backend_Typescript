@@ -14,26 +14,11 @@ export class ProductController {
   }
 
   /**
-   * `[POST] /api/v1/publish-product`
-   */
-  static publishProductByShop = () => {
-    // TO DO CODE
-  }
-
-  /**
-   * `[POST] /api/v1/unpublish-product`
-   */
-  static unPublishProductByShop = () => {
-    // TO DO CODE
-  }
-
-  /**
    * `[GET] /api/v1/products/`
    */
   static getProducts = async (req: Request, res: Response) => {
-    // TO DO CODE
     const dto = queryQueryProductDto.parse(req.query)
-    res.status(HttpStatusCode.OK).json(await ProductFactory.getProduct(dto, false))
+    res.status(HttpStatusCode.OK).json(await ProductFactory.getProduct(dto, false, true, false))
   }
 
   /**
@@ -46,30 +31,58 @@ export class ProductController {
   }
 
   /**
-   * `[GET] /api/v1/products`
-   */
-
-  static findAllProducts = () => {
-    // TO DO CODE
-  }
-  /**
    * `[GET] /api/v1/products/:productId`
    */
-  static findProduct = () => {
+  static getProductById = async (req: Request, res: Response) => {
     // TO DO CODE
+    const productId = req.params.productId
+    res.status(HttpStatusCode.OK).json(await ProductFactory.getProductById(productId))
   }
 
   /**
-   * `[GET] /api/v1/products/all-publish`
+   * `[POST] /api/v1/unpublish-product`
    */
-  static getAllPublishProduct = () => {
-    // TO DO CODE
+  static unPublishProductByShop = async (req: Request, res: Response) => {
+    const dto = queryQueryProductDto.parse(req.query)
+    res.status(HttpStatusCode.OK).json(await ProductFactory.getProduct(dto, false, false, true))
   }
 
   /**
-   * `[GET] /api/v1/products/search`
+   * `[PUT] /api/v1/products/:productId`
    */
-  static getListSearchProduct = () => {
+  static updateProduct = async (req: Request, res: Response) => {
+    res.status(HttpStatusCode.OK).json(await ProductFactory.updateProduct)
+  }
+
+  /**
+   * `[POST] /api/v1/products/:productId/publish-product`
+   */
+  static publishProduct = async (req: Request, res: Response) => {
     // TO DO CODE
+    res.status(HttpStatusCode.OK).json(await ProductFactory.publishProduct)
+  }
+
+  /**
+   * `[POST] /api/v1/products/:productId/unpublish-product`
+   */
+  static unpublishProduct = async (req: Request, res: Response) => {
+    // TO DO CODE
+    res.status(HttpStatusCode.OK).json(await ProductFactory.unpublishProduct)
+  }
+
+  /**
+   * `[DELETE] /api/v1/products/:productId/delete-product`
+   */
+  static deleteProduct = async (req: Request, res: Response) => {
+    // TO DO CODE
+    res.status(HttpStatusCode.OK).json(await ProductFactory.deleteProduct)
+  }
+
+  /**
+   * `[POST] /api/v1/products/:productId/restore-product`
+   */
+  static restoreProduct = async (req: Request, res: Response) => {
+    // TO DO CODE
+    res.status(HttpStatusCode.OK).json(await ProductFactory.registerProduct)
   }
 }

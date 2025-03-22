@@ -11,12 +11,17 @@ const productRouter = Router()
 productRouter.get('/', ProductController.getProducts)
 productRouter.get('/deleted', ProductController.getProductDeleted)
 
-productRouter.get('/:productId', ProductController.findProduct)
-productRouter.get('/all-publish', ProductController.getAllPublishProduct)
-productRouter.get('/search', ProductController.getListSearchProduct)
+productRouter.get('/:productId', ProductController.getProductById)
 
 // AuthGuard
 productRouter.use(AuthGuard)
+productRouter.use('/unpublish-product', ProductController.unPublishProductByShop)
 productRouter.post('', asyncHandler(ProductController.createProduct))
 
+productRouter.put('/:productId', ProductController.updateProduct)
+productRouter.post('/:productId/publish-product', ProductController.publishProduct)
+productRouter.post('/:productId/unpublish-product', ProductController.unPublishProductByShop)
+
+productRouter.delete('/:productId/delete-product', ProductController.deleteProduct)
+productRouter.post('/:productId/restore-product', ProductController.restoreProduct)
 export { productRouter }

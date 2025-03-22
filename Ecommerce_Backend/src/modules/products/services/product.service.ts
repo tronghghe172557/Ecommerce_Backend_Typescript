@@ -38,11 +38,15 @@ export class ProductFactory {
 
   static async getProduct(
     { page, pageSize, sorting, deleted }: IQueryProductDto,
-    isDeleted: boolean
+    isDeleted: boolean,
+    isPublished: boolean = true,
+    isDraft: boolean = false
   ): Promise<SuccessResponseBody<IProductDto[]>> {
     // 1. query filter
     const queryFilter: RootFilterQuery<IProduct> = {
-      deleteTimestamp: isDeleted ? { $ne: null } : null
+      deleteTimestamp: isDeleted ? { $ne: null } : null,
+      isPublished: isPublished,
+      isDraft: isDraft
     }
 
     // 2. To do: add more query filter: limit, skip, sort, ....
@@ -84,6 +88,22 @@ export class ProductFactory {
   ): Promise<SuccessResponseBody<IProductDto[]>> {
     return this.getProduct({ page, pageSize, sorting, deleted }, isDeleted)
   }
+
+  static async getProductById(productId: string): Promise<SuccessResponseBody<IProductDto>> {
+    const product = await ProductModel.findById(productId).lean().exec()
+
+    return {
+      data: productDto.parse(product)
+    }
+  }
+
+  static async updateProduct() {}
+
+  static async publishProduct() {}
+  static async unpublishProduct() {}
+
+  static async deleteProduct() {}
+  static async restoreProduct() {}
 }
 
 class Product {
