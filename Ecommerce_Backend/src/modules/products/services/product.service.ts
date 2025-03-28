@@ -4,9 +4,12 @@ import { RootFilterQuery, SortOrder } from 'mongoose'
 import {
   deleteProductDto,
   IClothingDto,
+  IDeleteProductDto,
   IElectronicDto,
   IProductDto,
+  IPubProductDto,
   IQueryProductDto,
+  IUnPubProductDto,
   productDto
 } from '~/modules/products/dtos'
 import { ICreateProductDto } from '~/modules/products/dtos'
@@ -114,15 +117,83 @@ export class ProductFactory {
     // 2. update product
     // issue: updateProduct ở đây chỉ là những trường cần update, không phải là toàn bộ product
     // -> khi new productClass mới -> các trường có thể undefined
+    // -> solution: dùng static method thay vì dùng constructor (new product)
     // -> use static method to update product
     return productClass.updateProduct(productId, updateProduct)
   }
 
-  static async publishProduct() {}
-  static async unpublishProduct() {}
+  static async publishProduct({ product_shop, product_id }: IPubProductDto): Promise<SuccessResponseBody<IProductDto>> {
+    // 1, check product exist
+    const foundProduct = await ProductModel.findOne({
+      _id: product_id,
+      product_shop: product_shop
+    })
+      .lean()
+      .exec()
+    if (foundProduct === null) {
+      throw new BadRequestException(`Product not found: ${product_id}`)
+    }
 
-  static async deleteProduct() {}
-  static async restoreProduct() {}
+    foundProduct.isPublished = true
+    foundProduct.isDraft = false
+
+    const product = await ProductModel.findByIdAndUpdate(product_id, foundProduct, { new: true })
+
+    return {
+      data: productDto.parse(product)
+    }
+  }
+  static async unpublishProduct({
+    product_shop,
+    product_id
+  }: IUnPubProductDto): Promise<SuccessResponseBody<IProductDto>> {
+    // 1, check product exist
+    const foundProduct = await ProductModel.findOne({
+      _id: product_id,
+      product_shop: product_shop
+    })
+      .lean()
+      .exec()
+
+    console.log(foundProduct)
+    if (foundProduct === null) {
+      throw new BadRequestException(`Product not found: ${product_id}`)
+    }
+
+    foundProduct.isPublished = false
+    foundProduct.isDraft = true
+
+    const product = await ProductModel.findByIdAndUpdate(product_id, foundProduct, { new: true })
+
+    return {
+      data: productDto.parse(product)
+    }
+  }
+
+  static async deleteProduct(productId: string): Promise<SuccessResponseBody<IDeleteProductDto>> {
+    const foundProduct = await ProductModel.findById(productId).lean().exec()
+
+    if (!foundProduct) {
+      throw new BadRequestException(`Product not found: ${productId}`)
+    }
+
+    foundProduct.deleteTimestamp = new Date()
+
+    return {
+      data: deleteProductDto.parse(await ProductModel.findByIdAndUpdate(productId, foundProduct, { new: true }))
+    }
+  }
+  static async restoreProduct(productId: string): Promise<SuccessResponseBody<IProductDto>> {
+    const foundProduct = await ProductModel.findById(productId).lean().exec()
+
+    if (!foundProduct) {
+      throw new BadRequestException(`Product not found: ${productId}`)
+    }
+
+    return {
+      data: productDto.parse(await ProductModel.findByIdAndUpdate(productId, { deleteTimestamp: null }, { new: true }))
+    }
+  }
 }
 
 class Product {

@@ -111,7 +111,141 @@ paths:
           description: Unauthorized
 
   # PRODUCT
-  /v1/api/product/{productId}:
+  /v1/api/products:
+    get:
+      summary: Get all products
+      description: Get all published products
+      tags:
+        - Product
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/sorting"
+        - name: deleted
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Whether to include deleted products
+      responses:
+        "200":
+          description: Successfully retrieved products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProductDto"
+                  meta:
+                    type: object
+                    properties:
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                            example: 1
+                          pageSize:
+                            type: integer
+                            example: 10
+                          total:
+                            type: integer
+                            example: 42
+                          totalPage:
+                            type: integer
+                            example: 5
+                          hasPreviousPage:
+                            type: boolean
+                            example: false
+                          hasNextPage:
+                            type: boolean
+                            example: true
+                      sorting:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            field:
+                              type: string
+                              example: "createdAt"
+                            direction:
+                              type: string
+                              example: "desc"
+  /v1/api/products/{productId}:
+    get:
+      summary: Get product by ID
+      description: Get a specific product by its ID
+      tags:
+        - Product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+          description: The ID of the product to retrieve
+      responses:
+        "200":
+          description: Successfully retrieved product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ProductDto"
+        "404":
+          description: Product not found
+    post:
+      summary: Create a new product
+      description: Create a new product in the system
+      tags:
+        - Product
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductDto"
+            examples:
+              clothing:
+                summary: Create a clothing product
+                value:
+                  product_name: "Summer T-Shirt"
+                  product_thumbnail: "https://example.com/images/tshirt.jpg"
+                  product_description: "Comfortable cotton t-shirt for summer"
+                  product_price: 199000
+                  product_quantity: 100
+                  product_type: "Clothing"
+                  product_shop: "984c06d4-e035-4308-9014-2eabaa78faf0"
+                  product_attribute:
+                    brand: "Fashion Brand"
+                    size: "M"
+                    material: "Cotton"
+                  product_ratingAverage: 0
+      responses:
+        "201":
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ProductDto"
+        "400":
+          description: Invalid input data
+        "401":
+          description: Unauthorized
     put:
       summary: Update an existing product
       tags:
@@ -147,6 +281,259 @@ paths:
           description: Invalid input data
         "401":
           description: Unauthorized
+        "404":
+          description: Product not found
+    delete:
+      summary: Delete a product
+      description: Mark a product as deleted (soft delete)
+      tags:
+        - Product
+      security:
+        - JWT: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+          description: The ID of the product to delete
+        - $ref: "#/components/parameters/ClientIdHeader"
+      responses:
+        "200":
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Delete product successfully"
+                  data:
+                    $ref: "#/components/schemas/DeleteProductDto"
+        "400":
+          description: Bad Request
+        "404":
+          description: Product not found
+  /v1/api/products/unpublish-product:
+    get:
+      summary: Get all unpublished products by shop
+      description: Get all unpublished (draft) products for the authenticated shop
+      tags:
+        - Product
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/sorting"
+        - $ref: "#/components/parameters/ClientIdHeader"
+      responses:
+        "200":
+          description: Successfully retrieved unpublished products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProductDto"
+                  meta:
+                    type: object
+                    properties:
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
+                          totalPage:
+                            type: integer
+                          hasPreviousPage:
+                            type: boolean
+                          hasNextPage:
+                            type: boolean
+                      sorting:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            field:
+                              type: string
+                            direction:
+                              type: string
+        "401":
+          description: Unauthorized
+  /v1/api/products/deleted:
+    get:
+      summary: Get all deleted products
+      description: Get all products that have been deleted (soft deleted)
+      tags:
+        - Product
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/sorting"
+        - $ref: "#/components/parameters/ClientIdHeader"
+      responses:
+        "200":
+          description: Successfully retrieved deleted products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DeleteProductDto"
+                  meta:
+                    type: object
+                    properties:
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          total:
+                            type: integer
+                          totalPage:
+                            type: integer
+                          hasPreviousPage:
+                            type: boolean
+                          hasNextPage:
+                            type: boolean
+                      sorting:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            field:
+                              type: string
+                            direction:
+                              type: string
+        "401":
+          description: Unauthorized
+  /v1/api/products/{productId}/publish-product:
+    post:
+      summary: Publish a product
+      description: Changes the product status to published
+      tags:
+        - Product
+      security:
+        - JWT: []
+      parameters:
+        - name: productId
+          in: path
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PubProductDto"
+      responses:
+        "200":
+          description: Product published successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Publish product successfully"
+                  data:
+                    $ref: "#/components/schemas/ProductDto"
+        "400":
+          description: Bad Request
+        "404":
+          description: Product not found
+  /v1/api/products/{productId}/unpublish-product:
+    post:
+      summary: Unpublish a product
+      description: Changes the product status to unpublished
+      tags:
+        - Product
+      security:
+        - JWT: []
+      parameters:
+        - name: productId
+          in: path
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnPubProductDto"
+      responses:
+        "200":
+          description: Product unpublished successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unpublish product successfully"
+                  data:
+                    $ref: "#/components/schemas/ProductDto"
+        "400":
+          description: Bad Request
+        "404":
+          description: Product not found
+  /v1/api/products/restore-product/{productId}:
+    post:
+      summary: Restore a deleted product
+      description: Restore a previously deleted product
+      tags:
+        - Product
+      security:
+        - JWT: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+          description: The ID of the product to restore
+        - $ref: "#/components/parameters/ClientIdHeader"
+      responses:
+        "200":
+          description: Product restored successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Restore product successfully"
+                  data:
+                    $ref: "#/components/schemas/ProductDto"
+        "400":
+          description: Bad Request
         "404":
           description: Product not found
 components:
@@ -239,6 +626,108 @@ components:
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYzczOWJkNi02ZGNlLTQzYWYtOTFkYi1iNzg2YmQwMWVkNzkiLCJpYXQiOjE3NDA1MDI3NDEsImV4cCI6MTc0MzA5NDc0MX0.GWRNcc0jLR9KN97nH36W6gFqDRAV4PNycD_w8jcezXg
 
     # PRODUCT
+    ProductDto:
+      type: object
+      properties:
+        _id:
+          type: string
+        product_name:
+          type: string
+        product_thumbnail:
+          type: string
+        product_description:
+          type: string
+        product_price:
+          type: number
+        product_quantity:
+          type: number
+        product_type:
+          type: string
+        product_shop:
+          type: string
+        product_attribute:
+          type: object
+        isPublished:
+          type: boolean
+        isDraft:
+          type: boolean
+    # Add this schema for creating products
+    CreateProductDto:
+      type: object
+      required:
+        - product_name
+        - product_thumbnail
+        - product_description
+        - product_price
+        - product_quantity
+        - product_type
+        - product_shop
+        - product_attribute
+      properties:
+        product_name:
+          type: string
+          example: "Summer T-Shirt"
+        product_thumbnail:
+          type: string
+          example: "https://example.com/images/tshirt.jpg"
+        product_description:
+          type: string
+          example: "Comfortable cotton t-shirt for summer"
+        product_price:
+          type: number
+          example: 199000
+        product_quantity:
+          type: number
+          example: 100
+        product_type:
+          type: string
+          enum:
+            - Clothing
+            - Electronic
+            - Furniture
+          example: "Clothing"
+        product_shop:
+          type: string
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+        product_attribute:
+          type: object
+          example:
+            brand: "Fashion Brand"
+            size: "M"
+            material: "Cotton"
+        product_ratingAverage:
+          type: number
+          example: 0
+    DeleteProductDto:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+        product_name:
+          type: string
+        product_thumbnail:
+          type: string
+        product_description:
+          type: string
+        product_price:
+          type: number
+        product_quantity:
+          type: number
+        product_type:
+          type: string
+        product_shop:
+          type: string
+        product_attribute:
+          type: object
+        isPublished:
+          type: boolean
+        isDraft:
+          type: boolean
+        deleteTimestamp:
+          type: string
+          format: date-time
+          example: "2025-03-15T10:30:00Z"
     UpdateProductDto:
       type: object
       properties:
@@ -280,6 +769,36 @@ components:
           type: boolean
         isPublished:
           type: boolean
+    PubProductDto:
+      type: object
+      required:
+        - product_shop
+        - product_id
+      properties:
+        product_shop:
+          type: string
+          description: Shop ID of the product owner
+          example: 984c06d4-e035-4308-9014-2eabaa78faf0
+        product_id:
+          type: string
+          description: ID of the product to be published
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+    UnPubProductDto:
+      type: object
+      required:
+        - product_shop
+        - product_id
+      properties:
+        product_shop:
+          type: string
+          description: Shop ID of the product owner
+          example: 984c06d4-e035-4308-9014-2eabaa78faf0
+
+        product_id:
+          type: string
+          description: ID of the product to be unpublished
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+    
     #ROLE
     Role:
       type: string

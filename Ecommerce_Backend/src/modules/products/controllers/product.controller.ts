@@ -1,4 +1,4 @@
-import { createProductDto, updateProductDto } from '~/modules/products/dtos'
+import { createProductDto, pubProductDto, unPubProductDto, updateProductDto } from '~/modules/products/dtos'
 import { Request, Response } from 'express'
 import { HttpStatusCode } from '~/base/common/enums'
 import { ProductFactory } from '~/modules/products/services'
@@ -8,7 +8,6 @@ export class ProductController {
    * `[POST] /api/v1/products`
    */
   static createProduct = async (req: Request, res: Response) => {
-    // TO DO CODE
     const dto = createProductDto.parse(req.body)
     res.status(HttpStatusCode.CREATED).json(await ProductFactory.createProduct(dto.product_type, dto))
   }
@@ -40,7 +39,7 @@ export class ProductController {
   }
 
   /**
-   * `[POST] /api/v1/unpublish-product`
+   * `[GET] /api/v1/unpublish-product`
    */
   static unPublishProductByShop = async (req: Request, res: Response) => {
     const dto = queryQueryProductDto.parse(req.query)
@@ -59,16 +58,22 @@ export class ProductController {
    * `[POST] /api/v1/products/:productId/publish-product`
    */
   static publishProduct = async (req: Request, res: Response) => {
-    // TO DO CODE
-    res.status(HttpStatusCode.OK).json(await ProductFactory.publishProduct)
+    const dto = pubProductDto.parse(req.body)
+    res.status(HttpStatusCode.OK).json({
+      message: 'Publish product successfully',
+      ...(await ProductFactory.publishProduct(dto))
+    })
   }
 
   /**
    * `[POST] /api/v1/products/:productId/unpublish-product`
    */
   static unpublishProduct = async (req: Request, res: Response) => {
-    // TO DO CODE
-    res.status(HttpStatusCode.OK).json(await ProductFactory.unpublishProduct)
+    const dto = unPubProductDto.parse(req.body)
+    res.status(HttpStatusCode.OK).json({
+      message: 'Unpublish product successfully',
+      ...(await ProductFactory.unpublishProduct(dto))
+    })
   }
 
   /**
@@ -76,7 +81,10 @@ export class ProductController {
    */
   static deleteProduct = async (req: Request, res: Response) => {
     // TO DO CODE
-    res.status(HttpStatusCode.OK).json(await ProductFactory.deleteProduct)
+    res.status(HttpStatusCode.OK).json({
+      message: 'Delete product successfully',
+      ...(await ProductFactory.deleteProduct(req.params.productId!))
+    })
   }
 
   /**
@@ -84,6 +92,9 @@ export class ProductController {
    */
   static restoreProduct = async (req: Request, res: Response) => {
     // TO DO CODE
-    res.status(HttpStatusCode.OK).json(await ProductFactory.registerProduct)
+    res.status(HttpStatusCode.OK).json({
+      message: 'Restore product successfully',
+      ...(await ProductFactory.restoreProduct(req.params.productId!))
+    })
   }
 }
