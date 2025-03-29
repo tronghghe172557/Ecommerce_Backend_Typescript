@@ -1,3 +1,7 @@
+import { DiscountService } from '~/modules/Discount/services'
+import { createDiscountDto } from '~/modules/Discount/dtos'
+import { Request, Response } from 'express'
+import { HttpStatusCode } from '~/base/common/enums'
 /*
     Discount services
     1 - Generate discount code [Shop | Admin]
@@ -26,8 +30,12 @@ export class DiscountController {
   /**
    * [POST] /api/v1/discounts/generate-discount-code
    */
-  static GenerateDiscountCode = () => {
-    // Implement code
+  static GenerateDiscountCode = async (req: Request, res: Response) => {
+    const dto = createDiscountDto.parse(req.body)
+    res.status(HttpStatusCode.CREATED).json({
+      message: 'Create discount code successfully',
+      data: await DiscountService.createDiscountCode(dto)
+    })
   }
 
   static VerifyDiscountCode = () => {

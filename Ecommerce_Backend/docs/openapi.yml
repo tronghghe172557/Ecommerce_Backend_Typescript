@@ -536,6 +536,90 @@ paths:
           description: Bad Request
         "404":
           description: Product not found
+
+  # DISCOUNT
+  /v1/api/discounts/generate-discount-code:
+    post:
+      summary: Generate a discount code
+      description: Create a new discount code for a shop
+      tags:
+        - Discount
+      # security:
+      #   - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDiscountDto"
+            examples:
+              percentage:
+                summary: Create a percentage discount for all products
+                value:
+                  discount_name: "Summer Sale"
+                  discount_description: "20% off for all products in summer"
+                  discount_type: "PERCENTAGE"
+                  discount_value: 20
+                  discount_code: "SUMMER20"
+                  discount_start_date: "2025-06-01T00:00:00Z"
+                  discount_end_date: "2025-08-31T23:59:59Z"
+                  discount_max_uses: 1000
+                  discount_max_user_per_user: 1
+                  discount_min_order_value: 100000
+                  discount_shopId: "984c06d4-e035-4308-9014-2eabaa78faf0"
+                  discount_is_active: true
+                  discount_applies_to: "ALL"
+              specific:
+                summary: Create a fixed amount discount for specific products
+                value:
+                  discount_name: "Special Offer"
+                  discount_description: "50,000 VND off for selected items"
+                  discount_type: "FIX_AMOUNT"
+                  discount_value: 50000
+                  discount_code: "SPECIAL50K"
+                  discount_start_date: "2025-04-01T00:00:00Z"
+                  discount_end_date: "2025-04-30T23:59:59Z"
+                  discount_max_uses: 500
+                  discount_max_user_per_user: 2
+                  discount_min_order_value: 200000
+                  discount_shopId: "984c06d4-e035-4308-9014-2eabaa78faf0"
+                  discount_is_active: true
+                  discount_applies_to: "SPECIFIC"
+                  discount_products_ids:
+                    [
+                      {
+                        "product_id": "85873208-f3a3-44f3-a2a9-44d676b8cbac",
+                        "product_name": "update-product",
+                        "product_price": 1,
+                        "product_quantity": 10,
+                      },
+                      {
+                        "product_id": "2b11ea50-7f33-41bd-8cc8-336e10e6fdae",
+                        "product_name": "Áo hoddy",
+                        "product_price": 1,
+                        "product_quantity": 10,
+                      },
+                    ]
+      responses:
+        "201":
+          description: Discount code created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Create discount code successfully"
+                  data:
+                    $ref: "#/components/schemas/DiscountDto"
+        "400":
+          description: Invalid input data
+        "401":
+          description: Unauthorized
+
 components:
   # schema: define data models that reuse in many endpoint
   schemas:
@@ -798,6 +882,166 @@ components:
           type: string
           description: ID of the product to be unpublished
           example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+
+    # DISCOUNT
+    DiscountProductDto:
+      type: object
+      required:
+        - product_id
+        - product_price
+        - product_quantity
+        - product_name
+      properties:
+        product_id:
+          type: string
+          example: "8943b5c7-35e2-4e5f-9654-1abcd54f7890"
+        product_price:
+          type: number
+          example: 250000
+        product_quantity:
+          type: number
+          example: 50
+        product_name:
+          type: string
+          example: "Premium T-shirt"
+    CreateDiscountDto:
+      type: object
+      required:
+        - discount_name
+        - discount_type
+        - discount_value
+        - discount_code
+        - discount_start_date
+        - discount_end_date
+        - discount_max_uses
+        - discount_max_user_per_user
+        - discount_min_order_value
+        - discount_shopId
+        - discount_applies_to
+      properties:
+        discount_name:
+          type: string
+          example: "Summer Sale"
+          minLength: 3
+        discount_description:
+          type: string
+          example: "20% off for all products in summer"
+        discount_type:
+          type: string
+          enum: ["PERCENTAGE", "FIX_AMOUNT"]
+          example: "PERCENTAGE"
+        discount_value:
+          type: number
+          example: 20
+          minimum: 1
+        discount_code:
+          type: string
+          example: "SUMMER20"
+          pattern: "^[A-Z0-9]+$"
+        discount_start_date:
+          type: string
+          format: date-time
+          example: "2025-06-01T00:00:00Z"
+        discount_end_date:
+          type: string
+          format: date-time
+          example: "2025-08-31T23:59:59Z"
+        discount_max_uses:
+          type: integer
+          example: 1000
+          minimum: 1
+        discount_max_user_per_user:
+          type: integer
+          example: 1
+          minimum: 1
+        discount_min_order_value:
+          type: number
+          example: 100000
+          minimum: 0
+        discount_shopId:
+          type: string
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+        discount_is_active:
+          type: boolean
+          default: true
+        discount_applies_to:
+          type: string
+          enum: ["ALL", "SPECIFIC"]
+          example: "ALL"
+        discount_products_ids:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiscountProductDto"
+    DiscountDto:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "72e134b2-a5c7-48f1-9bb5-53e3f8231294"
+        discount_name:
+          type: string
+          example: "Summer Sale"
+        discount_description:
+          type: string
+          example: "20% off for all products in summer"
+        discount_type:
+          type: string
+          enum: ["PERCENTAGE", "FIX_AMOUNT"]
+          example: "PERCENTAGE"
+        discount_value:
+          type: number
+          example: 20
+        discount_code:
+          type: string
+          example: "SUMMER20"
+        discount_start_date:
+          type: string
+          format: date-time
+          example: "2025-06-01T00:00:00Z"
+        discount_end_date:
+          type: string
+          format: date-time
+          example: "2025-08-31T23:59:59Z"
+        discount_max_uses:
+          type: integer
+          example: 1000
+        discount_uses_count:
+          type: integer
+          example: 0
+        discount_users_used:
+          type: array
+          items:
+            type: string
+          example: []
+        discount_max_user_per_user:
+          type: integer
+          example: 1
+        discount_min_order_value:
+          type: number
+          example: 100000
+        discount_shopId:
+          type: string
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+        discount_is_active:
+          type: boolean
+          example: true
+        discount_applies_to:
+          type: string
+          enum: ["ALL", "SPECIFIC"]
+          example: "ALL"
+        discount_products_ids:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiscountProductDto"
+          example: []
+        createTimestamp:
+          type: string
+          format: date-time
+          example: "2025-03-15T10:30:00Z"
+        updateTimestamp:
+          type: string
+          format: date-time
+          example: "2025-03-15T10:30:00Z"
     
     #ROLE
     Role:

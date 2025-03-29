@@ -17,6 +17,7 @@ export const HttpExceptionHandler: ErrorRequestHandler<Record<string, string>, F
   if (err instanceof HttpException) {
     const { statusCode, message, errorName } = err
 
+    logger.error(`http exception: ${message}`)
     res.status(statusCode).json({
       statusCode,
       errorName,
@@ -31,6 +32,7 @@ export const HttpExceptionHandler: ErrorRequestHandler<Record<string, string>, F
       .split('; ')
       .map((msg) => msg.replaceAll('"', '`'))
 
+    logger.error(`zod error: ${message}`)
     res.status(HttpStatusCode.BAD_REQUEST).json({
       statusCode: HttpStatusCode.BAD_REQUEST,
       errorName: httpStatusName[HttpStatusCode.BAD_REQUEST],

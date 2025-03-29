@@ -149,10 +149,13 @@ discountSchema.pre('save', function (next) {
   if (this.discount_start_date.getTime() >= this.discount_end_date.getTime()) {
     return next(new Error('Discount end date must be greater than start date'))
   }
+
+  return next() // please call next() to continue :))))))))))
 })
 
 // index
-discountSchema.index({ discount_code: 1 }, { unique: true }) // tạo index cho discount_code để tìm kiếm nhanh hơn
+// unique -> auto create index
+// discountSchema.index({ discount_code: 1 }) // tạo index cho discount_code để tìm kiếm nhanh hơn
 discountSchema.index({ discount_shopId: 1 }) // tạo index cho discount_shopId để tìm kiếm nhanh hơn
 
 const DiscountModel: Model<IDiscount> = mongoose.model<IDiscount>(DocumentName, discountSchema)
