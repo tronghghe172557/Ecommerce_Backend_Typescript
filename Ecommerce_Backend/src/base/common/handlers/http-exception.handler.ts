@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler } from 'express'
+import mongoose from 'mongoose'
 import { ZodError } from 'zod'
 import { fromZodError } from 'zod-validation-error'
 
@@ -37,6 +38,31 @@ export const HttpExceptionHandler: ErrorRequestHandler<Record<string, string>, F
       statusCode: HttpStatusCode.BAD_REQUEST,
       errorName: httpStatusName[HttpStatusCode.BAD_REQUEST],
       message
+    })
+    return next()
+  }
+
+  // Handle Mongoose errors
+  if (err instanceof mongoose.Error.ValidationError) {
+    // Mongoose validation error
+    const errors = Object.values(err.errors).map((error) => error.message)
+
+    logger.error(`mongoose validation error: ${errors.join(', ')}`)
+    res.status(HttpStatusCode.BAD_REQUEST).json({
+      statusCode: HttpStatusCode.BAD_REQUEST,
+      errorName: 'Validation Error',
+      message: errors
+    })
+    return next()
+  }
+
+  // Handle other Mongoose errors
+  if (err instanceof mongoose.Error) {
+    logger.error(`mongoose error: ${err.message}`)
+    res.status(HttpStatusCode.BAD_REQUEST).json({
+      statusCode: HttpStatusCode.BAD_REQUEST,
+      errorName: 'Database Error',
+      message: [err.message]
     })
     return next()
   }
