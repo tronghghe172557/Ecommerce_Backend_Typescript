@@ -1,5 +1,5 @@
 import { DiscountService } from '~/modules/Discount/services'
-import { createDiscountDto } from '~/modules/Discount/dtos'
+import { createDiscountDto, queryDiscountDto } from '~/modules/Discount/dtos'
 import { Request, Response } from 'express'
 import { HttpStatusCode } from '~/base/common/enums'
 /*
@@ -16,10 +16,29 @@ export class DiscountController {
   /**
    * [GET] /api/v1/discounts
    */
-  static GetAllDiscountCodes = () => {
-    // Implement code
+  static GetAllDiscountCodesForShop = async (req: Request, res: Response) => {
+    const dto = queryDiscountDto.parse(req.query)
+    console.log(dto)
+    res.status(HttpStatusCode.OK).json({
+      message: 'Get all codes by shop successfully',
+      data: await DiscountService.getAllDiscountCodesForShop(dto)
+    })
   }
 
+  /**
+   * [GET] /api/v1/products/discounts
+   * @param req
+   * @param res
+   * @returns
+   * @description Get all products by discount codes
+   */
+  static GetAllProductsByDiscountCodes = async (req: Request, res: Response) => {
+    const dto = queryDiscountDto.parse(req.query)
+    res.status(HttpStatusCode.OK).json({
+      message: 'Get all products by discount codes successfully',
+      data: await DiscountService.getAllProductsWithDiscountCodes(dto)
+    })
+  }
   /**
    * [GET] /api/v1/discounts
    */

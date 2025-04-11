@@ -538,6 +538,217 @@ paths:
           description: Product not found
 
   # DISCOUNT
+  /v1/api/discounts/discounts:
+    get:
+      summary: Get all discount codes for a shop
+      description: Retrieve all active discount codes owned by a specific shop
+      tags:
+        - Discount
+      parameters:
+        - name: discount_shopId
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+          description: The ID of the shop to retrieve discount codes for
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+      responses:
+        "200":
+          description: Successfully retrieved discount codes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Get all codes by shop successfully"
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/DiscountDto"
+                      meta:
+                        type: object
+                        properties:
+                          pagination:
+                            type: object
+                            properties:
+                              page:
+                                type: integer
+                                example: 1
+                              pageSize:
+                                type: integer
+                                example: 10
+                              total:
+                                type: integer
+                                example: 5
+                              totalPage:
+                                type: integer
+                                example: 1
+                              hasPreviousPage:
+                                type: boolean
+                                example: false
+                              hasNextPage:
+                                type: boolean
+                                example: false
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Shop ID is required"]
+        "401":
+          description: Unauthorized
+  /v1/api/discounts/products/discounts:
+    get:
+      summary: Get all products with discount code
+      description: Get all products that can be applied with a specific discount code
+      tags:
+        - Discount
+      parameters:
+        - name: discount_code
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "SUMMER2025"
+          description: The discount code to retrieve products for
+        - name: discount_shopId
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+          description: The ID of the shop that owns the discount code
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        - name: sorting
+          in: query
+          required: false
+          explode: true
+          description: Sorting options for the products
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                field:
+                  type: string
+                  enum:
+                    [
+                      "product_name",
+                      "product_price",
+                      "product_quantity",
+                      "createTimestamp",
+                    ]
+                  example: "product_price"
+                direction:
+                  type: string
+                  enum: ["asc", "desc"]
+                  example: "asc"
+          example: [{ "field": "product_price", "direction": "asc" }]
+        - name: productId
+          in: query
+          required: false
+          schema:
+            type: string
+          example: "8943b5c7-35e2-4e5f-9654-1abcd54f7890"
+          description: Optional filter by specific product ID
+        - name: isActive
+          in: query
+          required: false
+          schema:
+            type: boolean
+          example: true
+          description: Filter by discount active status
+      responses:
+        "200":
+          description: Successfully retrieved products with discount
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Get all products by discount codes successfully"
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ProductDto"
+                      meta:
+                        type: object
+                        properties:
+                          pagination:
+                            type: object
+                            properties:
+                              page:
+                                type: integer
+                                example: 1
+                              pageSize:
+                                type: integer
+                                example: 10
+                              total:
+                                type: integer
+                                example: 25
+                              totalPage:
+                                type: integer
+                                example: 3
+                              hasPreviousPage:
+                                type: boolean
+                                example: false
+                              hasNextPage:
+                                type: boolean
+                                example: true
+                          sorting:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                field:
+                                  type: string
+                                  example: "product_price"
+                                direction:
+                                  type: string
+                                  example: "asc"
+        "400":
+          description: Invalid input or discount code not found/inactive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Discount code not found or inactive"
+        "401":
+          description: Unauthorized
   /v1/api/discounts/generate-discount-code:
     post:
       summary: Generate a discount code
@@ -1042,7 +1253,7 @@ components:
           type: string
           format: date-time
           example: "2025-03-15T10:30:00Z"
-    
+
     #ROLE
     Role:
       type: string
