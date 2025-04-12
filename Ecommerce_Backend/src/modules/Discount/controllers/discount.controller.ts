@@ -1,5 +1,5 @@
 import { DiscountService } from '~/modules/Discount/services'
-import { createDiscountDto, queryDiscountDto } from '~/modules/Discount/dtos'
+import { createDiscountDto, discountAmountQuerySchema, queryDiscountDto } from '~/modules/Discount/dtos'
 import { Request, Response } from 'express'
 import { HttpStatusCode } from '~/base/common/enums'
 /*
@@ -39,11 +39,16 @@ export class DiscountController {
       data: await DiscountService.getAllProductsWithDiscountCodes(dto)
     })
   }
+
   /**
-   * [GET] /api/v1/discounts
+   * [POST] /api/v1/discounts-amount
    */
-  static DiscountAmount = () => {
-    // Implement code
+  static DiscountAmount = async (req: Request, res: Response) => {
+    const dto = discountAmountQuerySchema.parse(req.body)
+    res.status(HttpStatusCode.OK).json({
+      message: 'Get amount by discount successfully',
+      data: await DiscountService.getDiscountAmount(dto)
+    })
   }
 
   /**
@@ -57,15 +62,33 @@ export class DiscountController {
     })
   }
 
-  static VerifyDiscountCode = () => {
-    // Implement code
+  /**
+   * [POST] /api/v1/discounts/restore
+   */
+  static RestoreDiscountCode = async (req: Request, res: Response) => {
+    const { shopId, codeId } = req.body as { shopId: string; codeId: string }
+    res.status(HttpStatusCode.CREATED).json({
+      message: 'Restore discount code successfully',
+      data: await DiscountService.restoreDiscountCode({ shopId, codeId })
+    })
   }
 
-  static DeleteDiscountCode = () => {
-    // Implement code
+  /**
+   * [POST] /api/v1/discounts/cancel
+   */
+  static CancelDiscountCode = async (req: Request, res: Response) => {
+    const { shopId, codeId } = req.body as { shopId: string; codeId: string }
+    res.status(HttpStatusCode.CREATED).json({
+      message: 'Cancel discount code successfully',
+      data: await DiscountService.restoreDiscountCode({ shopId, codeId })
+    })
   }
 
-  static CancelDiscountCode = () => {
-    // Implement code
+  static UseDiscountCode = async (req: Request, res: Response) => {
+    const { shopId, codeId, userId } = req.body as { shopId: string; codeId: string; userId: string }
+    res.status(HttpStatusCode.CREATED).json({
+      message: 'Using discount code successfully',
+      data: await DiscountService.useDiscountCode({ shopId, codeId, userId })
+    })
   }
 }

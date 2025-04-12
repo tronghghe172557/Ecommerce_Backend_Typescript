@@ -23,6 +23,7 @@ export interface IDiscount extends BaseModel {
   discount_max_user_per_user: number // số lần sử dụng tối đa của mã giảm giá này cho mỗi người dùng
   discount_min_order_value: number // giá trị đơn hàng tối thiểu để áp dụng mã giảm giá
   discount_shopId: string // id của shop mà mã giảm giá này thuộc về
+  discount_is_acd: string // id của shop mà mã giảm giá này thuộc về
   discount_is_active: boolean
   discount_applies_to: DiscountAppliesTo.ALL | DiscountAppliesTo.SPECIFIC // áp dụng cho tất cả sản phẩm hay sản phẩm cụ thể
   discount_products_ids: Array<DiscountProduct> // nếu discount_applies_to là specific thì mới có, nếu discount_applies_to là all thì không có

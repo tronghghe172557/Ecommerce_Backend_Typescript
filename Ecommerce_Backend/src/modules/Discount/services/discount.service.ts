@@ -1,8 +1,16 @@
-import { discountDto, ICreateDiscountDto, IDiscountDto, IQueryDiscountDto } from '~/modules/Discount/dtos'
+import {
+  discountAmount,
+  discountDto,
+  ICreateDiscountDto,
+  IDiscountAmount,
+  IDiscountAmountQuery,
+  IDiscountDto,
+  IQueryDiscountDto
+} from '~/modules/Discount/dtos'
 import { SuccessResponseBody } from '~/base/common/types'
 import { DiscountModel } from '~/modules/Discount/models'
 import { BadRequestException } from '~/base/common/exceptions'
-import { DiscountAppliesTo } from '~/modules/Discount/enums'
+import { DiscountAppliesTo, DiscountType } from '~/modules/Discount/enums'
 import { ProductModel } from '~/modules/products/models'
 import { SortOrder } from 'mongoose'
 import { IProductDto } from '~/modules/products/dtos'
@@ -181,8 +189,8 @@ export class DiscountService {
   }
 
   /*
-        Get all discount code shop
-    */
+    Get all discount code shop
+  */
   static async getAllDiscountCodesForShop({
     discount_shopId,
     pageSize,
@@ -208,6 +216,222 @@ export class DiscountService {
           hasNextPage: +page < Math.ceil(discounts.length / +pageSize)
         }
       }
+    }
+  }
+
+  /**
+   * Delete a discount code (mark as deleted)
+   * @param shopId - The ID of the shop that owns the discount code
+   * @param codeId - The ID of the discount code to delete
+   * @returns The updated discount with is_deleted flag set to true
+   */
+  static async deleteDiscountCode({
+    shopId,
+    codeId
+  }: {
+    shopId: string
+    codeId: string
+  }): Promise<SuccessResponseBody<IDiscountDto>> {
+    // Find the discount by shop ID and code ID
+    const foundDiscount = await DiscountModel.findOne({
+      discount_shopId: shopId,
+      _id: codeId,
+      discount_is_active: true
+    })
+
+    if (!foundDiscount) {
+      throw new BadRequestException("Discount code doesn't exist or already deleted")
+    }
+
+    // Update the discount to mark it as deleted
+    const discountUpdated = await DiscountModel.findByIdAndUpdate(
+      foundDiscount._id,
+      {
+        discount_is_active: false
+      },
+      {
+        new: true // Return the modified document rather than the original
+      }
+    )
+
+    if (!discountUpdated) {
+      throw new BadRequestException('Failed to delete discount code')
+    }
+
+    return {
+      data: discountDto.parse(discountUpdated)
+    }
+  }
+
+  /**
+   * Restore a previously deleted (deactivated) discount code
+   * @param shopId - The ID of the shop that owns the discount code
+   * @param codeId - The ID of the discount code to restore
+   * @returns The updated discount with is_active flag set to true
+   */
+  static async restoreDiscountCode({
+    shopId,
+    codeId
+  }: {
+    shopId: string
+    codeId: string
+  }): Promise<SuccessResponseBody<IDiscountDto>> {
+    // Find the discount by shop ID and code ID (that is currently inactive)
+    const foundDiscount = await DiscountModel.findOne({
+      discount_shopId: shopId,
+      _id: codeId,
+      discount_is_active: false
+    })
+
+    if (!foundDiscount) {
+      throw new BadRequestException("Discount code doesn't exist or is already active")
+    }
+
+    // Check if the discount code is still valid for restoration
+    const currentDate = new Date()
+    if (foundDiscount.discount_end_date && new Date(foundDiscount.discount_end_date) < currentDate) {
+      throw new BadRequestException('Cannot restore discount code that has already expired')
+    }
+
+    // Update the discount to mark it as active again
+    const discountUpdated = await DiscountModel.findByIdAndUpdate(
+      foundDiscount._id,
+      {
+        discount_is_active: true
+      },
+      {
+        new: true // Return the modified document rather than the original
+      }
+    )
+
+    if (!discountUpdated) {
+      throw new BadRequestException('Failed to restore discount code')
+    }
+
+    return {
+      data: discountDto.parse(discountUpdated)
+    }
+  }
+
+  /*
+    Get discount amount
+  */
+  static async getDiscountAmount({
+    discount_code,
+    discount_shopId,
+    userId,
+    products
+  }: IDiscountAmountQuery): Promise<SuccessResponseBody<IDiscountAmount>> {
+    const foundDiscount = await DiscountModel.findOne({
+      discount_code,
+      discount_shopId
+    })
+
+    if (!foundDiscount || !foundDiscount.discount_is_active) {
+      throw new BadRequestException('Discount code not found or inactive')
+    }
+
+    const {
+      discount_is_active,
+      discount_max_uses,
+      discount_min_order_value,
+      discount_users_used,
+      discount_max_user_per_user,
+      discount_type,
+      discount_value
+    } = foundDiscount
+
+    // check discount code is active
+    if (!discount_is_active) {
+      throw new BadRequestException('Discount code is inactive')
+    }
+
+    // check discount max user per use
+    if (discount_users_used.length >= discount_max_uses) {
+      throw new BadRequestException('Discount code has reached maximum usage')
+    }
+
+    // count total value and check min order value
+    let totalOrder = 0
+    if (discount_min_order_value > 0) {
+      totalOrder = products.reduce((total, product) => {
+        return total + product.product_price * product.product_quantity
+      }, 0)
+
+      // check totalOder with min order value
+      if (totalOrder < discount_min_order_value) {
+        throw new BadRequestException('Total order value is less than minimum order value')
+      }
+    }
+
+    // check max user per use
+    // discount_users_used = ['userId1', 'userId2']
+    if (discount_max_user_per_user > 0) {
+      const userUsedDiscount = discount_users_used.filter((user) => user === userId)
+      if (userUsedDiscount.length >= discount_max_user_per_user) {
+        throw new BadRequestException('Discount code has reached maximum usage per user')
+      }
+    }
+
+    // count total end value
+    const endTotalValue =
+      discount_type === DiscountType.FIX_AMOUNT ? discount_value : (totalOrder * discount_value) / 100
+
+    return {
+      data: discountAmount.parse({
+        totalOrder,
+        discount: endTotalValue,
+        totalPrice: totalOrder - endTotalValue
+      })
+    }
+  }
+
+  /**
+   * Cancel a discount code for a specific user
+   * @param shopId - The ID of the shop that owns the discount code
+   * @param codeId - The ID of the discount code
+   * @param userId - The ID of the user canceling the discount
+   * @returns The updated discount with the user removed from the users_used array
+   */
+  static async useDiscountCode({
+    shopId,
+    codeId,
+    userId
+  }: {
+    shopId: string
+    codeId: string
+    userId: string
+  }): Promise<SuccessResponseBody<IDiscountDto>> {
+    // Find the discount by shop ID and code ID
+    const foundDiscount = await DiscountModel.findOne({
+      discount_shopId: shopId,
+      _id: codeId,
+      discount_is_active: true
+    })
+
+    if (!foundDiscount) {
+      throw new BadRequestException("Discount code doesn't exist or is inactive")
+    }
+
+    const discountUpdated = await DiscountModel.findByIdAndUpdate(
+      foundDiscount._id,
+      {
+        $push: { discount_users_used: userId },
+        $inc: {
+          discount_uses_count: 1
+        }
+      },
+      {
+        new: true // Return the modified document rather than the original
+      }
+    )
+
+    if (!discountUpdated) {
+      throw new BadRequestException('Failed to cancel discount code')
+    }
+
+    return {
+      data: discountDto.parse(discountUpdated)
     }
   }
 }

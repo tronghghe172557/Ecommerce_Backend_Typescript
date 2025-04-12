@@ -538,7 +538,7 @@ paths:
           description: Product not found
 
   # DISCOUNT
-  /v1/api/discounts/discounts:
+  /v1/api/discounts/:
     get:
       summary: Get all discount codes for a shop
       description: Retrieve all active discount codes owned by a specific shop
@@ -616,6 +616,86 @@ paths:
                     example: ["Shop ID is required"]
         "401":
           description: Unauthorized
+    post:
+      summary: Generate a discount code
+      description: Create a new discount code for a shop
+      tags:
+        - Discount
+      # security:
+      #   - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDiscountDto"
+            examples:
+              percentage:
+                summary: Create a percentage discount for all products
+                value:
+                  discount_name: "Summer Sale"
+                  discount_description: "20% off for all products in summer"
+                  discount_type: "PERCENTAGE"
+                  discount_value: 20
+                  discount_code: "SUMMER20"
+                  discount_start_date: "2025-06-01T00:00:00Z"
+                  discount_end_date: "2025-08-31T23:59:59Z"
+                  discount_max_uses: 1000
+                  discount_max_user_per_user: 1
+                  discount_min_order_value: 100000
+                  discount_shopId: "984c06d4-e035-4308-9014-2eabaa78faf0"
+                  discount_is_active: true
+                  discount_applies_to: "ALL"
+              specific:
+                summary: Create a fixed amount discount for specific products
+                value:
+                  discount_name: "Special Offer"
+                  discount_description: "50,000 VND off for selected items"
+                  discount_type: "FIX_AMOUNT"
+                  discount_value: 50000
+                  discount_code: "SPECIAL50K"
+                  discount_start_date: "2025-04-01T00:00:00Z"
+                  discount_end_date: "2025-04-30T23:59:59Z"
+                  discount_max_uses: 500
+                  discount_max_user_per_user: 2
+                  discount_min_order_value: 200000
+                  discount_shopId: "984c06d4-e035-4308-9014-2eabaa78faf0"
+                  discount_is_active: true
+                  discount_applies_to: "SPECIFIC"
+                  discount_products_ids:
+                    [
+                      {
+                        "product_id": "85873208-f3a3-44f3-a2a9-44d676b8cbac",
+                        "product_name": "update-product",
+                        "product_price": 1,
+                        "product_quantity": 10,
+                      },
+                      {
+                        "product_id": "2b11ea50-7f33-41bd-8cc8-336e10e6fdae",
+                        "product_name": "Áo hoddy",
+                        "product_price": 1,
+                        "product_quantity": 10,
+                      },
+                    ]
+      responses:
+        "201":
+          description: Discount code created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Create discount code successfully"
+                  data:
+                    $ref: "#/components/schemas/DiscountDto"
+        "400":
+          description: Invalid input data
+        "401":
+          description: Unauthorized\
   /v1/api/discounts/products/discounts:
     get:
       summary: Get all products with discount code
@@ -749,10 +829,103 @@ paths:
                     example: "Discount code not found or inactive"
         "401":
           description: Unauthorized
-  /v1/api/discounts/generate-discount-code:
+  /v1/api/discounts/discounts-amount:
     post:
-      summary: Generate a discount code
-      description: Create a new discount code for a shop
+      summary: Calculate discount amount for products
+      description: Calculate the discount amount and final price after applying a specific discount code to a collection of products
+      tags:
+        - Discount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - discount_code
+                - discount_shopId
+                - userId
+              properties:
+                discount_code:
+                  type: string
+                  example: "SUMMER2025"
+                  description: The discount code to apply
+                discount_shopId:
+                  type: string
+                  example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+                  description: The ID of the shop that owns the discount code
+                userId:
+                  type: string
+                  example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+                  description: The ID of the user requesting the discount calculation
+                products:
+                  type: array
+                  description: The products to apply the discount to
+                  items:
+                    $ref: "#/components/schemas/DiscountProductDto"
+                  default: []
+                  example: [
+                    {
+                      "product_id": "85873208-f3a3-44f3-a2a9-44d676b8cbac",
+                      "product_price": 199000,
+                      "product_quantity": 2,
+                      "product_name": "Summer T-Shirt"
+                    },
+                    {
+                      "product_id": "2b11ea50-7f33-41bd-8cc8-336e10e6fdae",
+                      "product_price": 350000,
+                      "product_quantity": 1,
+                      "product_name": "Áo hoddy"
+                    }
+                  ]
+      responses:
+        "200":
+          description: Successfully calculated discount amount
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Get amount by discount successfully"
+                  data:
+                    type: object
+                    properties:
+                      totalOrder:
+                        type: number
+                        example: 748000
+                        description: The total value of the order before discount
+                      discount:
+                        type: number
+                        example: 149600
+                        description: The amount of discount applied
+                      totalPrice:
+                        type: number
+                        example: 598400
+                        description: The final price after discount
+        "400":
+          description: Invalid input or discount code not found/inactive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Discount code not found or inactive"
+        "401":
+          description: Unauthorized
+  /v1/api/discounts/restore:
+    post:
+      summary: Restore a deactivated discount code
+      description: Reactivate a previously deactivated discount code
       tags:
         - Discount
       # security:
@@ -764,58 +937,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateDiscountDto"
-            examples:
-              percentage:
-                summary: Create a percentage discount for all products
-                value:
-                  discount_name: "Summer Sale"
-                  discount_description: "20% off for all products in summer"
-                  discount_type: "PERCENTAGE"
-                  discount_value: 20
-                  discount_code: "SUMMER20"
-                  discount_start_date: "2025-06-01T00:00:00Z"
-                  discount_end_date: "2025-08-31T23:59:59Z"
-                  discount_max_uses: 1000
-                  discount_max_user_per_user: 1
-                  discount_min_order_value: 100000
-                  discount_shopId: "984c06d4-e035-4308-9014-2eabaa78faf0"
-                  discount_is_active: true
-                  discount_applies_to: "ALL"
-              specific:
-                summary: Create a fixed amount discount for specific products
-                value:
-                  discount_name: "Special Offer"
-                  discount_description: "50,000 VND off for selected items"
-                  discount_type: "FIX_AMOUNT"
-                  discount_value: 50000
-                  discount_code: "SPECIAL50K"
-                  discount_start_date: "2025-04-01T00:00:00Z"
-                  discount_end_date: "2025-04-30T23:59:59Z"
-                  discount_max_uses: 500
-                  discount_max_user_per_user: 2
-                  discount_min_order_value: 200000
-                  discount_shopId: "984c06d4-e035-4308-9014-2eabaa78faf0"
-                  discount_is_active: true
-                  discount_applies_to: "SPECIFIC"
-                  discount_products_ids:
-                    [
-                      {
-                        "product_id": "85873208-f3a3-44f3-a2a9-44d676b8cbac",
-                        "product_name": "update-product",
-                        "product_price": 1,
-                        "product_quantity": 10,
-                      },
-                      {
-                        "product_id": "2b11ea50-7f33-41bd-8cc8-336e10e6fdae",
-                        "product_name": "Áo hoddy",
-                        "product_price": 1,
-                        "product_quantity": 10,
-                      },
-                    ]
+              type: object
+              required:
+                - shopId
+                - codeId
+              properties:
+                shopId:
+                  type: string
+                  example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+                  description: The ID of the shop that owns the discount code
+                codeId:
+                  type: string
+                  example: "72e134b2-a5c7-48f1-9bb5-53e3f8231294"
+                  description: The ID of the discount code to restore
       responses:
         "201":
-          description: Discount code created successfully
+          description: Discount code restored successfully
           content:
             application/json:
               schema:
@@ -823,11 +960,148 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Create discount code successfully"
+                    example: "Restore discount code successfully"
                   data:
                     $ref: "#/components/schemas/DiscountDto"
         "400":
-          description: Invalid input data
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Discount code doesn't exist or is already active"
+        "401":
+          description: Unauthorized
+  /v1/api/discounts/cancel:
+    post:
+      summary: Cancel (deactivate) a discount code
+      description: Mark a discount code as inactive
+      tags:
+        - Discount
+      # security:
+      #   - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shopId
+                - codeId
+              properties:
+                shopId:
+                  type: string
+                  example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+                  description: The ID of the shop that owns the discount code
+                codeId:
+                  type: string
+                  example: "72e134b2-a5c7-48f1-9bb5-53e3f8231294"
+                  description: The ID of the discount code to cancel
+      responses:
+        "201":
+          description: Discount code cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Cancel discount code successfully"
+                  data:
+                    $ref: "#/components/schemas/DiscountDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Discount code doesn't exist or already deleted"
+        "401":
+          description: Unauthorized
+  /v1/api/discounts/use-discount:
+    post:
+      summary: Record usage of a discount code
+      description: Track when a user applies a discount code to an order
+      tags:
+        - Discount
+      # security:
+      #   - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - shopId
+                - codeId
+                - userId
+              properties:
+                shopId:
+                  type: string
+                  example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+                  description: The ID of the shop that owns the discount code
+                codeId:
+                  type: string
+                  example: "c92f7acf-9cf8-46da-b869-76edd396a1cc"
+                  description: The ID of the discount code being used
+                userId:
+                  type: string
+                  example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+                  description: The ID of the user applying the discount code
+      responses:
+        "201":
+          description: Discount code usage recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Using discount code successfully"
+                  data:
+                    $ref: "#/components/schemas/DiscountDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Discount code doesn't exist or is inactive"
         "401":
           description: Unauthorized
 

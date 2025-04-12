@@ -3,7 +3,7 @@ import { DiscountType, DiscountAppliesTo } from '~/modules/Discount/enums'
 import { deleteDto } from '~/base/dtos'
 
 // Schema for discount product items
-const discountProductSchema = z.object({
+export const discountProductSchema = z.object({
   product_id: z.string(),
   product_price: z.coerce.number().positive(),
   product_quantity: z.coerce.number().positive().int(),
