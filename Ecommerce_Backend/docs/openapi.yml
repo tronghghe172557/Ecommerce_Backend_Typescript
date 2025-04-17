@@ -1105,6 +1105,324 @@ paths:
         "401":
           description: Unauthorized
 
+  # CART
+  /v1/api/cart/{userId}:
+    get:
+      summary: Get cart by user ID
+      description: Get the cart for a specific user by path parameter
+      tags:
+        - Cart
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+          description: The ID of the user to get cart for
+      responses:
+        "200":
+          description: Successfully retrieved user cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Get user cart successfully"
+                  data:
+                    $ref: "#/components/schemas/CartDto"
+        "400":
+          description: Bad Request
+        "404":
+          description: Cart not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 404
+                  errorName:
+                    type: string
+                    example: "Not Found"
+                  message:
+                    type: string
+                    example: "User cart not found"
+  /v1/api/cart:
+    post:
+      summary: Create user cart
+      description: Create a new cart for a specific user
+      tags:
+        - Cart
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCartDto"
+            example:
+              cart_userId: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+              cart_products: [
+                {
+                  "product_thumb": "hello",
+                  "product_id": "9f5dde85-5830-417d-93e7-f279249d6d49",
+                  "product_price": 55555,
+                  "product_quantity": 2,
+                  "product_name": "Áo hoddy 2"
+                }
+              ]
+      responses:
+        "201":
+          description: Cart created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Create user cart successfully"
+                  data:
+                    $ref: "#/components/schemas/CartDto"
+        "400":
+          description: Invalid input data
+        "401":
+          description: Unauthorized
+    get:
+      summary: Get user cart
+      description: Get the cart for a specific user
+      tags:
+        - Cart
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+          description: The ID of the user to get cart for
+      responses:
+        "200":
+          description: Successfully retrieved user cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Get user cart successfully"
+                  data:
+                    $ref: "#/components/schemas/CartDto"
+        "400":
+          description: Bad Request
+        "404":
+          description: Cart not found
+    put:
+      summary: Update user cart
+      description: Update the cart for a specific user
+      tags:
+        - Cart
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - cartId
+                - cart_products
+              properties:
+                userId:
+                  type: string
+                  example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+                  description: The ID of the user who owns the cart
+                cartId:
+                  type: string
+                  example: "85873208-f3a3-44f3-a2a9-44d676b8cbac"
+                  description: The ID of the cart to update
+                cart_products:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/CartProductDto"
+                  description: Updated array of products in the cart
+            example:
+              cartId: "093ac4bc-cf7b-4ba4-b4cb-a2337f366876"
+              cart_products: [
+                {
+                  "product_id": "9f5dde85-5830-417d-93e7-f279249d6d49",
+                  "product_thumb": "product_thumb",
+                  "product_quantity": 2,
+                  "product_name": "Áo hoddy 2",
+                  "product_price": 55555
+                }
+              ]
+      responses:
+        "200":
+          description: Cart updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Update user cart successfully"
+                  data:
+                    $ref: "#/components/schemas/CartDto"
+        "400":
+          description: Invalid input data
+        "401":
+          description: Unauthorized
+        "404":
+          description: Cart not found
+    delete:
+      summary: Delete user cart
+      description: Delete the cart for a specific user
+      tags:
+        - Cart
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - cartId
+              properties:
+                userId:
+                  type: string
+                  example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+                  description: The ID of the user who owns the cart
+                cartId:
+                  type: string
+                  example: "96611c1e-8e77-4517-b3c7-e443df591ec3"
+                  description: The ID of the cart to delete
+      responses:
+        "200":
+          description: Cart deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Delete cart successfully"
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Cart not found
+  /v1/api/cart/add:
+    post:
+      summary: Add product to cart
+      description: Add a product to the user's cart
+      tags:
+        - Cart
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - product
+              properties:
+                userId:
+                  type: string
+                  example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+                  description: The ID of the user who owns the cart
+                product:
+                  $ref: "#/components/schemas/CartProductDto"
+      responses:
+        "200":
+          description: Product added to cart successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Add product to cart successfully"
+                  data:
+                    $ref: "#/components/schemas/CartDto"
+        "400":
+          description: Invalid input data
+        "401":
+          description: Unauthorized
+        "404":
+          description: Cart not found
+  /v1/api/cart/item:
+    delete:
+      summary: Delete cart item
+      description: Remove a specific product from the user's cart
+      tags:
+        - Cart
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - cartId
+                - productId
+              properties:
+                userId:
+                  type: string
+                  example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+                  description: The ID of the user who owns the cart
+                cartId:
+                  type: string
+                  example: "85873208-f3a3-44f3-a2a9-44d676b8cbac"
+                  description: The ID of the cart
+                productId:
+                  type: string
+                  example: "2b11ea50-7f33-41bd-8cc8-336e10e6fdae"
+                  description: The ID of the product to remove from cart
+      responses:
+        "200":
+          description: Cart item deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Delete cart item successfully"
+                  data:
+                    $ref: "#/components/schemas/CartDto"
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Cart or product not found
+
+
 components:
   # schema: define data models that reuse in many endpoint
   schemas:
@@ -1527,6 +1845,76 @@ components:
           type: string
           format: date-time
           example: "2025-03-15T10:30:00Z"
+
+    # CART
+    CreateCartDto:
+      type: object
+      required:
+        - cart_userId
+        - cart_products
+      properties:
+        cart_userId:
+          type: string
+          format: uuid
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+          description: ID of the user who owns the cart
+        cart_products:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartProductDto"
+          description: Array of products in the cart
+    CartProductDto:
+      type: object
+      required:
+        - product_id
+        - product_quantity
+        - product_name
+        - product_price
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          example: "9f5dde85-5830-417d-93e7-f279249d6d49"
+        product_thumb:
+          type: string
+          format: uuid
+          example: "product_thumb"
+        product_quantity:
+          type: integer
+          minimum: 1
+          example: 2
+        product_name:
+          type: string
+          example: "Áo hoddy 2"
+        product_price:
+          type: number
+          example: 55555
+    CartDto:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+          example: "b9a5f1d7-8e23-4d1c-9b5f-a87654321abc"
+        cart_userId:
+          type: string
+          format: uuid
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+        cart_products:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartProductDto"
+        cart_count_product:
+          type: integer
+          example: 2
+        createTimestamp:
+          type: string
+          format: date-time
+          example: "2025-04-15T14:30:00Z"
+        updateTimestamp:
+          type: string
+          format: date-time
+          example: "2025-04-15T15:45:00Z"
 
     #ROLE
     Role:

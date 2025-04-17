@@ -1,23 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose'
-import { BaseModel, baseModelSchemaDefinition } from '~/base/common/models'
+import { baseModelSchemaDefinition } from '~/base/common/models'
 import { CartState } from '~/modules/Cart/enums'
+import { ICartDto, ICartProductDto } from '~/modules/Cart/dtos'
 
-export interface CartProduct {
-  product_id: string
-  product_price: number
-  product_quantity: number
-  product_name: string
-  product_thumb: string
-}
-
-export interface ICart extends BaseModel {
-  cart_state: CartState
-  cart_products: Array<CartProduct>
-  cart_count_product: number
-  cart_userId: string
-}
-
-const cartSchema: Schema<ICart> = new Schema(
+const cartSchema: Schema<ICartDto> = new Schema(
   {
     ...baseModelSchemaDefinition,
     cart_state: {
@@ -51,7 +37,7 @@ const cartSchema: Schema<ICart> = new Schema(
   },
   {
     timestamps: true,
-    collection: 'Carts'
+    collection: 'carts'
   }
 )
 
@@ -61,9 +47,23 @@ cartSchema.pre('save', function (next) {
   return next()
 })
 
+// Update cart_count_product before updating
+cartSchema.pre('updateOne', async function (next) {
+  // 'this' refers to the query, not the document
+  const docToUpdate = await this.model.findOne(this.getQuery())
+  if (docToUpdate) {
+    const count = docToUpdate.cart_products.reduce(
+      (total: number, item: ICartProductDto) => total + item.product_quantity,
+      0
+    )
+    this.set({ cart_count_product: count })
+  }
+  next()
+})
+
 // Create index for faster queries
 cartSchema.index({ cart_userId: 1 })
 
-const CartModel: Model<ICart> = mongoose.model<ICart>('Cart', cartSchema)
+const CartModel: Model<ICartDto> = mongoose.model<ICartDto>('Cart', cartSchema)
 
 export { CartModel }

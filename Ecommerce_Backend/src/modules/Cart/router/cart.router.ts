@@ -14,23 +14,22 @@ const cartRouter = Router()
  * 6. Delete cart item
  */
 
-// [POST] /api/v1/carts - Create a new cart for user
+cartRouter.get('/:userId', asyncHandler(CartController.GetCartByUserId))
+
+// [POST] /api/v1/cart - Create a new cart for user
 cartRouter.post('/', asyncHandler(CartController.CreateUserCart))
 
-// [PUT] /api/v1/carts - Update user cart
+// [PUT] /api/v1/cart - Update user cart
 cartRouter.put('/', asyncHandler(CartController.UpdateUserCart))
 
-// [POST] /api/v1/carts/add - Add product to cart
+// [POST] /api/v1/cart/add - Add product to cart
 cartRouter.post('/add', asyncHandler(CartController.AddToCart))
 
-// [GET] /api/v1/carts - Get user cart
-cartRouter.get('/', asyncHandler(CartController.GetUserCart))
-
-// [DELETE] /api/v1/carts - Delete user cart
+// [DELETE] /api/v1/cart - Delete user cart
 cartRouter.delete('/', asyncHandler(CartController.DeleteCart))
 
-// [DELETE] /api/v1/carts/item - Delete cart item
+// [DELETE] /api/v1/cart/item - Delete cart item
 cartRouter.delete('/item', asyncHandler(CartController.DeleteCartItem))
 
-// /api/v1/carts
+// /api/v1/cart
 export { cartRouter }

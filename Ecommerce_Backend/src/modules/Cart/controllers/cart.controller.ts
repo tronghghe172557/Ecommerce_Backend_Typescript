@@ -1,6 +1,8 @@
+import { updateCart } from './../dtos/update-cart.dto'
 import { Request, Response } from 'express'
 import { CartService } from '~/modules/Cart/services/cart.service'
 import { HttpStatusCode } from '~/base/common/enums'
+import { createCart } from '~/modules/Cart/dtos'
 
 /*
   Cart Controller
@@ -14,33 +16,44 @@ import { HttpStatusCode } from '~/base/common/enums'
 
 export class CartController {
   /**
-   * [POST] /api/v1/carts
+   * [POST] /api/v1/cart
+   * @description Create a new cart for user
+   */
+  static GetCartByUserId = async (req: Request, res: Response) => {
+    const { userId } = req.params
+    res.status(HttpStatusCode.OK).json({
+      message: 'find user cart successfully',
+      ...(await CartService.getUserCart(userId))
+    })
+  }
+  /**
+   * [POST] /api/v1/cart
    * @description Create a new cart for user
    */
   static CreateUserCart = async (req: Request, res: Response) => {
-    const userId = req.body.userId
+    const dto = createCart.parse(req.body)
 
     res.status(HttpStatusCode.CREATED).json({
       message: 'Create user cart successfully',
-      data: await CartService.createUserCart()
+      ...(await CartService.createUserCart(dto))
     })
   }
 
   /**
-   * [PUT] /api/v1/carts
+   * [PUT] /api/v1/cart
    * @description Update user cart
    */
   static UpdateUserCart = async (req: Request, res: Response) => {
-    const { userId, cartId, payload } = req.body
-
+    const dto = updateCart.parse(req.body)
+    console.log(req.body.cartId)
     res.status(HttpStatusCode.OK).json({
       message: 'Update user cart successfully',
-      data: await CartService.updateUserCart()
+      ...(await CartService.updateUserCart(dto, req.body.cartId!))
     })
   }
 
   /**
-   * [POST] /api/v1/carts/add
+   * [POST] /api/v1/cart/add
    * @description Add product to cart
    */
   static AddToCart = async (req: Request, res: Response) => {
@@ -53,33 +66,18 @@ export class CartController {
   }
 
   /**
-   * [GET] /api/v1/carts
-   * @description Get user cart
-   */
-  static GetUserCart = async (req: Request, res: Response) => {
-    const userId = req.query.userId as string
-
-    res.status(HttpStatusCode.OK).json({
-      message: 'Get user cart successfully',
-      data: await CartService.getUserCart()
-    })
-  }
-
-  /**
-   * [DELETE] /api/v1/carts
+   * [DELETE] /api/v1/cart
    * @description Delete user cart
    */
   static DeleteCart = async (req: Request, res: Response) => {
-    const { userId, cartId } = req.body
-
+    await CartService.deleteCart(req.body.cartId!)
     res.status(HttpStatusCode.OK).json({
-      message: 'Delete cart successfully',
-      data: await CartService.deleteCart()
+      message: 'Delete cart successfully'
     })
   }
 
   /**
-   * [DELETE] /api/v1/carts/item
+   * [DELETE] /api/v1/cart/item
    * @description Delete cart item
    */
   static DeleteCartItem = async (req: Request, res: Response) => {
