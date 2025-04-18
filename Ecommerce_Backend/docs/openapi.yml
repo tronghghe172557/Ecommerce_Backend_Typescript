@@ -1451,6 +1451,79 @@ paths:
                   message:
                     type: string
                     example: "Cart not found or does not belong to user"
+  
+  # CHECKOUT
+  # CHECKOUT
+  /v1/api/checkout/review:
+    post:
+      summary: Review checkout information
+      description: Calculate prices, discounts and prepare checkout information
+      tags:
+        - Checkout
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutReviewRequestDto"
+            example:
+              cartId: "093ac4bc-cf7b-4ba4-b4cb-a2337f366876"
+              userId: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+              shop_order_ids: [
+                {
+                  "shop_id": "984c06d4-e035-4308-9014-2eabaa78faf0",
+                  "shop_discounts": [
+                    {
+                      "shop_id": "984c06d4-e035-4308-9014-2eabaa78faf0",
+                      "discount_id": "72e134b2-a5c7-48f1-9bb5-53e3f8231294",
+                      "code": "SUMMER20"
+                    }
+                  ],
+                  "item_products": [
+                    {
+                      "product_id": "9f5dde85-5830-417d-93e7-f279249d6d49",
+                      "product_price": 55555,
+                      "product_quantity": 2,
+                      "product_name": "Áo hoddy 2"
+                    }
+                  ]
+                }
+              ]
+      responses:
+        "200":
+          description: Checkout information calculated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Checkout review calculated successfully"
+                  data:
+                    $ref: "#/components/schemas/CheckoutReviewResultDto"
+        "400":
+          description: Bad Request or calculation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Cart not found or discount calculation error"
+        "401":
+          description: Unauthorized
 
 components:
   # schema: define data models that reuse in many endpoint
@@ -1995,7 +2068,6 @@ components:
           format: uuid
           example: "9f5dde85-5830-417d-93e7-f279249d6d49"
           description: ID of the product to remove from cart
-
     ItemProductDto:
       type: object
       required:
@@ -2029,6 +2101,146 @@ components:
           minimum: 0
           example: 10
           description: Previous quantity of the product in the cart (for optimistic/pessimistic locking)
+
+    # CHECKOUT
+    CheckoutReviewRequestDto:
+      type: object
+      required:
+        - cartId
+        - userId
+        - shop_order_ids
+      properties:
+        cartId:
+          type: string
+          format: uuid
+          example: "33214ad6-f381-426e-a05a-713df1319571"
+        userId:
+          type: string
+          format: uuid
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+        shop_order_ids:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopOrderDto"
+          description: List of shops with their products to checkout
+    ShopOrderDto:
+      type: object
+      required:
+        - shop_id
+        - item_products
+      properties:
+        shop_id:
+          type: string
+          format: uuid
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+        shop_discounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopDiscountDto"
+          description: Discount codes to apply
+          default: []
+        item_products:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemProductCheckoutDto"
+          description: Products to checkout
+    ShopDiscountDto:
+      type: object
+      required:
+        - shop_id
+        - discount_id
+        - code
+      properties:
+        shop_id:
+          type: string
+          format: uuid
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+        discount_id:
+          type: string
+          format: uuid
+          example: "72e134b2-a5c7-48f1-9bb5-53e3f8231294"
+        code:
+          type: string
+          example: "SUMMER20"
+    ItemProductCheckoutDto:
+      type: object
+      required:
+        - product_id
+        - product_price
+        - product_quantity
+        - product_name
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          example: "9f5dde85-5830-417d-93e7-f279249d6d49"
+        product_price:
+          type: number
+          example: 55555
+        product_quantity:
+          type: number
+          example: 2
+        product_name:
+          type: string
+          example: "Áo hoddy 2"
+    ItemCheckoutDto:
+      type: object
+      properties:
+        shop_id:
+          type: string
+          format: uuid
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+        shop_discounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopDiscountDto"
+        priceRaw:
+          type: number
+          description: "Price before discount"
+          example: 111110
+        priceApplyDiscount:
+          type: number
+          description: "Price after discount"
+          example: 88888
+        item_products:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemProductCheckoutDto"
+    CheckoutOrderDto:
+      type: object
+      properties:
+        totalPrice:
+          type: number
+          example: 111110
+          description: "Total price before discounts"
+        freeShip:
+          type: number
+          example: 0
+          description: "Free shipping amount"
+        totalDiscount:
+          type: number
+          example: 22222
+          description: "Total discount amount"
+        totalCheckout:
+          type: number
+          example: 88888
+          description: "Final amount to pay"
+    CheckoutReviewResultDto:
+      type: object
+      properties:
+        shop_order_ids:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopOrderDto"
+          description: "Original shop orders"
+        shop_order_ids_new:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemCheckoutDto"
+          description: "Processed shop orders with calculated prices"
+        checkout_order:
+          $ref: "#/components/schemas/CheckoutOrderDto"
+          description: "Summary of checkout amounts"
 
     #ROLE
     Role:

@@ -347,6 +347,9 @@ export class DiscountService {
     }
 
     // check discount max user per use
+    // console.log(
+    //   `${discount_users_used.length} >= ${discount_max_uses}: ${discount_users_used.length >= discount_max_uses}`
+    // )
     if (discount_users_used.length >= discount_max_uses) {
       throw new BadRequestException('Discount code has reached maximum usage')
     }
@@ -368,6 +371,9 @@ export class DiscountService {
     // discount_users_used = ['userId1', 'userId2']
     if (discount_max_user_per_user > 0) {
       const userUsedDiscount = discount_users_used.filter((user) => user === userId)
+      // console.log(
+      //   `${userUsedDiscount.length} >= ${discount_max_user_per_user}: ${userUsedDiscount.length >= discount_max_user_per_user}`
+      // )
       if (userUsedDiscount.length >= discount_max_user_per_user) {
         throw new BadRequestException('Discount code has reached maximum usage per user')
       }

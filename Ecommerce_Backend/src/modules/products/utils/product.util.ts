@@ -1,3 +1,7 @@
+import { BadRequestException } from '~/base/common/exceptions'
+import { itemProductCheckout, ItemProductCheckout } from '~/modules/Checkouts/dtos'
+import { ProductModel } from '~/modules/products/models'
+
 /**
  * Chuyển đổi một đối tượng lồng nhau thành một đối tượng phẳng hơn.
  * @param obj - Đối tượng hoặc mảng cần chuyển đổi.
@@ -55,4 +59,25 @@ export const updateNestedObjectParse = <T extends Record<string, unknown>>(obj: 
   })
 
   return final
+}
+
+export const checkProductByServer = async (products: ItemProductCheckout[]): Promise<ItemProductCheckout[]> => {
+  return await Promise.all(
+    products.map(async (product) => {
+      const foundProduct = await ProductModel.findById({
+        _id: product.product_id
+      })
+
+      if (!foundProduct) {
+        throw new BadRequestException(`Product with id ${product.product_id} not found or something wrong`)
+      }
+
+      return itemProductCheckout.parse({
+        product_price: foundProduct.product_price,
+        product_quantity: product.product_quantity,
+        product_id: foundProduct._id,
+        product_name: foundProduct.product_name
+      })
+    })
+  )
 }

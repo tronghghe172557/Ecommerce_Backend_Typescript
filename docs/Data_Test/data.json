@@ -117,5 +117,29 @@
     "cartId": "e5c0bf4c-f546-4da2-a698-eb18f59463e5"
   ,
     "productId": "9f5dde85-5830-417d-93e7-f279249d6d49"
+  },
+  "data_checkout": {
+    "cartId": "33214ad6-f381-426e-a05a-713df1319571",
+    "userId": "aa2158c7-5bd1-477b-8606-7e96ea09e334",
+    "shop_order_ids": [
+      {
+        "shop_id": "984c06d4-e035-4308-9014-2eabaa78faf0",
+        "shop_discounts": [
+          {
+            "shop_id": "984c06d4-e035-4308-9014-2eabaa78faf0",
+            "discount_id": "c92f7acf-9cf8-46da-b869-76edd396a1cc",
+            "code": "SUMMER2025"
+          }
+        ],
+        "item_products": [
+          {
+            "product_id": "9f5dde85-5830-417d-93e7-f279249d6d49",
+            "product_price": 55555,
+            "product_quantity": 2,
+            "product_name": "Áo hoddy 2"
+          }
+        ]
+      }
+    ]
   }
 }
