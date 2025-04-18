@@ -1332,8 +1332,6 @@ paths:
       description: Add a product to the user's cart
       tags:
         - Cart
-      security:
-        - JWT: []
       parameters:
         - $ref: "#/components/parameters/ClientIdHeader"
       requestBody:
@@ -1341,17 +1339,20 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - userId
-                - product
-              properties:
-                userId:
-                  type: string
-                  example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
-                  description: The ID of the user who owns the cart
-                product:
-                  $ref: "#/components/schemas/CartProductDto"
+              $ref: "#/components/schemas/AddToCartDto"
+            example:
+              shopId: "984c06d4-e035-4308-9014-2eabaa78faf0"
+              cart_id: "b9a5f1d7-8e23-4d1c-9b5f-a87654321abc"
+              cart_userId: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+              item_products: [
+                {
+                  "product_id": "9f5dde85-5830-417d-93e7-f279249d6d49",
+                  "product_price": 55555,
+                  "product_quantity": 2,
+                  "product_shopId": "984c06d4-e035-4308-9014-2eabaa78faf0",
+                  "product_old_quantity": 10
+                }
+              ]
       responses:
         "200":
           description: Product added to cart successfully
@@ -1367,6 +1368,20 @@ paths:
                     $ref: "#/components/schemas/CartDto"
         "400":
           description: Invalid input data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Product not found"
         "401":
           description: Unauthorized
         "404":
@@ -1384,24 +1399,11 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - userId
-                - cartId
-                - productId
-              properties:
-                userId:
-                  type: string
-                  example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
-                  description: The ID of the user who owns the cart
-                cartId:
-                  type: string
-                  example: "85873208-f3a3-44f3-a2a9-44d676b8cbac"
-                  description: The ID of the cart
-                productId:
-                  type: string
-                  example: "2b11ea50-7f33-41bd-8cc8-336e10e6fdae"
-                  description: The ID of the product to remove from cart
+              $ref: "#/components/schemas/DeleteCartItemDto"
+            example:
+              cart_userId: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+              cartId: "85873208-f3a3-44f3-a2a9-44d676b8cbac"
+              productId: "2b11ea50-7f33-41bd-8cc8-336e10e6fdae"
       responses:
         "200":
           description: Cart item deleted successfully
@@ -1417,11 +1419,38 @@ paths:
                     $ref: "#/components/schemas/CartDto"
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Product not found in cart"
         "401":
           description: Unauthorized
         "404":
-          description: Cart or product not found
-
+          description: Cart not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 404
+                  errorName:
+                    type: string
+                    example: "Not Found"
+                  message:
+                    type: string
+                    example: "Cart not found or does not belong to user"
 
 components:
   # schema: define data models that reuse in many endpoint
@@ -1915,6 +1944,91 @@ components:
           type: string
           format: date-time
           example: "2025-04-15T15:45:00Z"
+        # Add schema for adding product to cart
+    AddToCartDto:
+      type: object
+      required:
+        - shopId
+        - cart_id
+        - cart_userId
+        - item_products
+      properties:
+        shopId:
+          type: string
+          format: uuid
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+          description: ID of the shop that owns the product
+        cart_id:
+          type: string
+          format: uuid
+          example: "b9a5f1d7-8e23-4d1c-9b5f-a87654321abc"
+          description: ID of the cart to add product to
+        cart_userId:
+          type: string
+          format: uuid
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+          description: ID of the user who owns the cart
+        item_products:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemProductDto"
+          description: Array of products to add to cart
+    DeleteCartItemDto:
+      type: object
+      required:
+        - cart_userId
+        - cartId
+        - productId
+      properties:
+        cart_userId:
+          type: string
+          format: uuid
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+          description: ID of the user who owns the cart
+        cartId:
+          type: string
+          format: uuid
+          example: "e5c0bf4c-f546-4da2-a698-eb18f59463e5"
+          description: ID of the cart containing the product
+        productId:
+          type: string
+          format: uuid
+          example: "9f5dde85-5830-417d-93e7-f279249d6d49"
+          description: ID of the product to remove from cart
+
+    ItemProductDto:
+      type: object
+      required:
+        - product_id
+        - product_price
+        - product_quantity
+        - product_shopId
+        - product_old_quantity
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          example: "9f5dde85-5830-417d-93e7-f279249d6d49"
+          description: ID of the product to add
+        product_price:
+          type: number
+          example: 55555
+          description: Price of the product
+        product_quantity:
+          type: integer
+          minimum: 1
+          example: 2
+          description: Quantity of the product to add
+        product_shopId:
+          type: string
+          format: uuid
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+          description: ID of the shop that owns the product
+        product_old_quantity:
+          type: integer
+          minimum: 0
+          example: 10
+          description: Previous quantity of the product in the cart (for optimistic/pessimistic locking)
 
     #ROLE
     Role:

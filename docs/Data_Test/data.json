@@ -97,5 +97,25 @@
         "product_name": "Áo hoddy 3"
       }
     ]
+  },
+  "data_add_product_to_cart": {
+    "shopId": "984c06d4-e035-4308-9014-2eabaa78faf0",
+    "cart_id": "33214ad6-f381-426e-a05a-713df1319571",
+    "cart_userId": "aa2158c7-5bd1-477b-8606-7e96ea09e334",
+    "item_products": [
+      {
+        "product_id": "9f5dde85-5830-417d-93e7-f279249d6d49",
+        "product_price": 55555,
+        "product_quantity": 2,
+        "product_shopId": "984c06d4-e035-4308-9014-2eabaa78faf0",
+        "product_old_quantity": 10
+      }
+    ]
+  },
+  "data_delete_product_to_cart": {
+    "cart_userId": "aa2158c7-5bd1-477b-8606-7e96ea09e334",
+    "cartId": "e5c0bf4c-f546-4da2-a698-eb18f59463e5"
+  ,
+    "productId": "9f5dde85-5830-417d-93e7-f279249d6d49"
   }
 }

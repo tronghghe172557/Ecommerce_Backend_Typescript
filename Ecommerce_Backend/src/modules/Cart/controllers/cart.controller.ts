@@ -2,7 +2,7 @@ import { updateCart } from './../dtos/update-cart.dto'
 import { Request, Response } from 'express'
 import { CartService } from '~/modules/Cart/services/cart.service'
 import { HttpStatusCode } from '~/base/common/enums'
-import { createCart } from '~/modules/Cart/dtos'
+import { addProductSchema, createCart, deleteCartSchema } from '~/modules/Cart/dtos'
 
 /*
   Cart Controller
@@ -57,11 +57,11 @@ export class CartController {
    * @description Add product to cart
    */
   static AddToCart = async (req: Request, res: Response) => {
-    const { userId, product } = req.body
+    const dto = addProductSchema.parse(req.body)
 
     res.status(HttpStatusCode.OK).json({
       message: 'Add product to cart successfully',
-      data: await CartService.addToCart()
+      data: await CartService.addToCart(dto)
     })
   }
 
@@ -81,11 +81,10 @@ export class CartController {
    * @description Delete cart item
    */
   static DeleteCartItem = async (req: Request, res: Response) => {
-    const { userId, cartId, productId } = req.body
-
+    const dto = deleteCartSchema.parse(req.body)
     res.status(HttpStatusCode.OK).json({
       message: 'Delete cart item successfully',
-      data: await CartService.deleteCartItem()
+      data: await CartService.deleteCartItem(dto)
     })
   }
 }
