@@ -1524,6 +1524,79 @@ paths:
                     example: "Cart not found or discount calculation error"
         "401":
           description: Unauthorized
+  /v1/api/checkout/order:
+    post:
+      summary: Create a new order for checkout
+      description: Process the final checkout and create a new order based on cart items
+      tags:
+        - Checkout
+      security:
+        - JWT: []
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderDto"
+            example:
+              cart_id: "33214ad6-f381-426e-a05a-713df1319571"
+              user_id: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+              user_address: "Ha Noi"
+              user_payment: "COD"
+              user_note: "Please deliver in the afternoon"
+              shop_order_ids: [
+                {
+                  "shop_id": "984c06d4-e035-4308-9014-2eabaa78faf0",
+                  "shop_discounts": [
+                    {
+                      "shop_id": "984c06d4-e035-4308-9014-2eabaa78faf0",
+                      "discount_id": "c92f7acf-9cf8-46da-b869-76edd396a1cc",
+                      "code": "SUMMER2025"
+                    }
+                  ],
+                  "item_products": [
+                    {
+                      "product_id": "9f5dde85-5830-417d-93e7-f279249d6d49",
+                      "product_price": 55555,
+                      "product_quantity": 2,
+                      "product_name": "Áo hoddy 2"
+                    }
+                  ]
+                }
+              ]
+      responses:
+        "201":
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Order created successfully"
+                  data:
+                    $ref: "#/components/schemas/OrderDto"
+        "400":
+          description: Bad Request or calculation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Invalid order data"
+        "401":
+          description: Unauthorized
 
 components:
   # schema: define data models that reuse in many endpoint
@@ -2241,6 +2314,82 @@ components:
         checkout_order:
           $ref: "#/components/schemas/CheckoutOrderDto"
           description: "Summary of checkout amounts"
+    CreateOrderDto:
+      type: object
+      required:
+        - cart_id
+        - user_id
+        - user_address
+        - shop_order_ids
+      properties:
+        cart_id:
+          type: string
+          format: uuid
+          example: "33214ad6-f381-426e-a05a-713df1319571"
+        user_id:
+          type: string
+          format: uuid
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+        user_address:
+          type: string
+          example: "Ha Noi"
+        user_payment:
+          type: string
+          enum: ["COD", "CREDIT_CARD", "PAYPAL", "BANK_TRANSFER"]
+          default: "COD"
+          example: "COD"
+        user_note:
+          type: string
+          example: "Please deliver in the afternoon"
+          default: ""
+        shop_order_ids:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopOrderDto"
+          description: List of shops with their products to checkout
+    
+    OrderDto:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+          example: "fd921a7b-e4c8-4b7f-b863-a34c128ec654"
+        order_userId:
+          type: string
+          format: uuid
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+        order_checkout:
+          $ref: "#/components/schemas/CheckoutOrderDto"
+        order_shipping_address:
+          type: string
+          example: "Ha Noi"
+        order_payment:
+          type: string
+          enum: ["COD", "CREDIT_CARD", "PAYPAL", "BANK_TRANSFER"]
+          example: "COD"
+        order_products:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemCheckoutDto"
+        order_trackingNumber:
+          type: string
+          example: "#24680135752025"
+        order_status:
+          type: string
+          enum: ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED"]
+          example: "PENDING"
+        order_note:
+          type: string
+          example: "Please deliver in the afternoon"
+        createTimestamp:
+          type: string
+          format: date-time
+          example: "2025-04-15T10:30:00Z"
+        updateTimestamp:
+          type: string
+          format: date-time
+          example: "2025-04-15T10:30:00Z"
 
     #ROLE
     Role:

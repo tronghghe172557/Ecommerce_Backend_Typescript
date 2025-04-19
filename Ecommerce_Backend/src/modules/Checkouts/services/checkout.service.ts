@@ -1,15 +1,21 @@
 import { BadRequestException } from '~/base/common/exceptions'
 import { SuccessResponseBody } from '~/base/common/types'
+import { acquireLock } from '~/base/redis/redis.service'
 import { CartModel } from '~/modules/Cart/models'
 import {
   ICheckout,
   CheckoutOrder,
   ItemCheckout,
   CheckoutReviewResult,
-  checkoutReviewResultSchema
+  checkoutReviewResultSchema,
+  ICreateOrder,
+  IOrder,
+  orderSchema
 } from '~/modules/Checkouts/dtos'
 import { DiscountService } from '~/modules/Discount/services'
 import { checkProductByServer } from '~/modules/products/utils'
+import { OrderModel } from '~/modules/Checkouts/models'
+import { OrderStatus } from '~/modules/Checkouts/enums'
 
 export class CheckoutService {
   static async checkOutReview({
@@ -26,7 +32,7 @@ export class CheckoutService {
     // return data format
     const checkout_order: CheckoutOrder = {
         totalPrice: 0,
-        freeShip: 0,
+        feeShip: 0,
         totalDiscount: 0,
         totalCheckout: 0
       },
@@ -95,5 +101,71 @@ export class CheckoutService {
       data: checkoutReviewResultSchema.parse(result)
     }
   }
-  static async orderByUser() {}
+
+  static async orderByUser({
+    cart_id,
+    user_id,
+    shop_order_ids,
+    user_address,
+    user_payment,
+    user_note
+  }: ICreateOrder): Promise<SuccessResponseBody<IOrder>> {
+    const checkoutPreview = await this.checkOutReview({
+      cartId: cart_id,
+      userId: user_id,
+      shop_order_ids
+    })
+
+    const { shop_order_ids_new, checkout_order } = checkoutPreview.data
+    console.log('[0]shop_order_ids_new::', shop_order_ids_new)
+
+    // check product that has in stock or not
+    const products = shop_order_ids_new.flatMap((order) => order.item_products)
+    console.log('[1]products::', products)
+    /*
+        1. Duyệt qua từng sản phẩm trong giỏ hàng
+        2. Thực hiện tạo khoá -> đảm bảo chỉ có 1 khoá 1 người trong cùng 1 thời điểm có thể thao tác được với sản phẩm đó
+        3. Nếu tạo khoá thành công -> thực hiện thao tác với sản phẩm trong hàm (acquireLock)
+        4. Nếu thao tác thành công -> giải phóng khoá
+      */
+    for (let i = 0; i < products.length; i++) {
+      const { product_id, product_quantity } = products[i]
+      const keyLock = await acquireLock(product_id, product_quantity)
+      console.log('[2]keyLock::', keyLock)
+    }
+
+    const newOrder = await OrderModel.create({
+      order_userId: user_id,
+      order_checkout: checkout_order,
+      order_shipping_address: user_address,
+      order_payment: user_payment,
+      order_products: shop_order_ids_new,
+      order_trackingNumber: `order_${Date.now()}`,
+      order_status: OrderStatus.PENDING,
+      order_note: user_note
+    })
+
+    console.log('[3]newOrder::', newOrder)
+
+    if (!newOrder) {
+      throw new BadRequestException('Order failed')
+    }
+
+    // update cart
+    await CartModel.findByIdAndUpdate(
+      { _id: cart_id },
+      {
+        $set: {
+          cart_products: [],
+          cart_totalPrice: 0,
+          cart_totalQuantity: 0
+        }
+      },
+      { new: true }
+    )
+
+    return {
+      data: orderSchema.parse(newOrder)
+    }
+  }
 }

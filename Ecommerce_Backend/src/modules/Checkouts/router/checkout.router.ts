@@ -6,5 +6,6 @@ const checkoutRouter = Router()
 
 // /api/v1/checkout
 checkoutRouter.post('/review', asyncHandler(CheckoutController.checkOutReview))
+checkoutRouter.post('/order', asyncHandler(CheckoutController.orderByUser))
 
 export { checkoutRouter }

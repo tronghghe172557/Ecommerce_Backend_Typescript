@@ -13,7 +13,7 @@ export const itemProductCheckout = z.object({
   product_name: z.string()
 })
 
-const shopOrder = z.object({
+export const shopOrder = z.object({
   shop_id: z.string(),
   shop_discounts: z.array(shopDiscount).optional().default([]),
   item_products: z.array(itemProductCheckout).default([])
@@ -28,7 +28,7 @@ export const checkoutSchema = z.object({
 // Schema cho checkout order
 export const checkoutOrderSchema = z.object({
   totalPrice: z.number(),
-  freeShip: z.number(),
+  feeShip: z.number(),
   totalDiscount: z.number(),
   totalCheckout: z.number()
 })
