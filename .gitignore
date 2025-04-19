@@ -2,7 +2,16 @@
 /Ecommerce_Backend/.env
 /Ecommerce_Backend/dist
 /Ecommerce_Backend/logs
+
+# sys_message_queue_shop
+/sys_message_queue_shop/node_modules
+/sys_message_queue_shop/.env
+/sys_message_queue_shop/dist
+/sys_message_queue_shop/logs
+/sys_message_queue_shop/.vscode
+
 .vscode
+.DS_Store
 
 # log
 # Logs
