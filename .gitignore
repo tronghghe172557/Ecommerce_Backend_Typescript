@@ -1,7 +1,9 @@
+# Ecommerce_Backend
 /Ecommerce_Backend/node_modules
 /Ecommerce_Backend/.env
 /Ecommerce_Backend/dist
 /Ecommerce_Backend/logs
+/Ecommerce_Backend/.vscode
 
 # sys_message_queue_shop
 /sys_message_queue_shop/node_modules
