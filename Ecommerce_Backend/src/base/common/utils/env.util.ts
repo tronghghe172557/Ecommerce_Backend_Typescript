@@ -28,7 +28,12 @@ const envSchema = z.object({
   DISCORD_CHANNEL_ID: z.string(),
   REDIS_HOST: z.string(),
   REDIS_PORT: z.coerce.number().positive(),
-  REDIS_PASSWORD: z.string()
+  REDIS_PASSWORD: z.string(),
+  // RabbitMQ
+  ACCOUNT_RABBITMQ_HOST: z.string(),
+  ACCOUNT_RABBITMQ_PORT: z.coerce.number().positive(),
+  ACCOUNT_RABBITMQ: z.string(),
+  ACCOUNT_RABBITMQ_PASSWORD: z.string()
 })
 
 // safeParse => returns a result object with the parsed value or an error
