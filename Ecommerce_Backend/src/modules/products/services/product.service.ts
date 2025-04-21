@@ -19,6 +19,8 @@ import { ProductType } from '~/modules/products/enums'
 import { SuccessResponseBody } from '~/base/common/types'
 import { UpdateProductDto } from '~/modules/products/dtos'
 import { updateNestedObjectParse } from '../utils'
+import { pushNotiToSystem } from '~/modules/Notification/services'
+import { NotificationType } from '~/modules/Notification/enums'
 
 export class ProductFactory {
   // OPTIMIZE: Refactor this method to use a factory pattern
@@ -234,7 +236,28 @@ class Product {
   }
 
   async createProduct(product_id: string = uuidv4()) {
-    return await ProductModel.create({ ...this, _id: product_id })
+    const newProduct = await ProductModel.create({ ...this, _id: product_id })
+
+    if (newProduct) {
+      pushNotiToSystem({
+        noti_type: NotificationType.SHOP_NEW_PRODUCT,
+        noti_senderId: this.product_shop,
+        noti_receivedId: 'test-user',
+        noti_content: `@@@ add new product: ${this.product_name} @@@@`,
+        noti_options: {
+          product_id: newProduct._id,
+          product_name: this.product_name,
+          shop_name: this.product_shop
+        }
+      })
+        .then((res) => {
+          console.log('Push notification successfully', res)
+        })
+        .catch((err) => {
+          console.log('Push notification failed', err)
+        })
+    }
+    return newProduct
   }
 
   static async updateProduct(productId: string, updateProduct: object) {

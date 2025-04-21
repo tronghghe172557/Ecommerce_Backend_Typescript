@@ -175,32 +175,6 @@ paths:
                             direction:
                               type: string
                               example: "desc"
-  /v1/api/products/{productId}:
-    get:
-      summary: Get product by ID
-      description: Get a specific product by its ID
-      tags:
-        - Product
-      parameters:
-        - name: productId
-          in: path
-          required: true
-          schema:
-            type: string
-          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
-          description: The ID of the product to retrieve
-      responses:
-        "200":
-          description: Successfully retrieved product
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    $ref: "#/components/schemas/ProductDto"
-        "404":
-          description: Product not found
     post:
       summary: Create a new product
       description: Create a new product in the system
@@ -246,6 +220,33 @@ paths:
           description: Invalid input data
         "401":
           description: Unauthorized
+    
+  /v1/api/products/{productId}:
+    get:
+      summary: Get product by ID
+      description: Get a specific product by its ID
+      tags:
+        - Product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 85873208-f3a3-44f3-a2a9-44d676b8cbac
+          description: The ID of the product to retrieve
+      responses:
+        "200":
+          description: Successfully retrieved product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ProductDto"
+        "404":
+          description: Product not found
     put:
       summary: Update an existing product
       tags:
@@ -1598,6 +1599,67 @@ paths:
         "401":
           description: Unauthorized
 
+  # NOTIFICATION
+  /v1/api/notification:
+    get:
+      summary: Get all notifications
+      description: Retrieve all notifications for the authenticated user
+      tags:
+        - Notification
+      parameters:
+        - $ref: "#/components/parameters/ClientIdHeader"
+        - name: noti_receivedId
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+          description: ID of the user to get notifications for
+        - name: noti_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["ALL", "ORDER", "PROMOTION", "SHOP"]
+          example: "ALL"
+          description: Filter notifications by type
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/sorting"
+      responses:
+        "200":
+          description: Successfully retrieved notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "List notification by user"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/NotificationDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  errorName:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "User ID is required"
+        "401":
+          description: Unauthorized
+
 components:
   # schema: define data models that reuse in many endpoint
   schemas:
@@ -2346,8 +2408,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ShopOrderDto"
-          description: List of shops with their products to checkout
-    
+          description: List of shops with their products to checkout  
     OrderDto:
       type: object
       properties:
@@ -2391,6 +2452,54 @@ components:
           format: date-time
           example: "2025-04-15T10:30:00Z"
 
+    # NOTIFICATION
+    NotificationDto:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "d1e2f3a4-b5c6-7d8e-9f0a-b1c2d3e4f5g6"
+        noti_type:
+          type: string
+          enum: [
+            "ORDER-001", "ORDER-002", "ORDER-003", "ORDER-004", 
+            "ORDER-005", "ORDER-006", "ORDER-007", "ORDER-008", 
+            "ORDER-009", "PROMOTION-001", "SHOP-001"
+          ]
+          example: "ORDER-001"
+          description: "Type of notification using predefined codes"
+        noti_senderId:
+          type: string
+          example: "984c06d4-e035-4308-9014-2eabaa78faf0"
+          description: "ID of the sender (shop or system)"
+        noti_receivedId:
+          type: string
+          example: "aa2158c7-5bd1-477b-8606-7e96ea09e334"
+          description: "ID of the notification recipient"
+        noti_content:
+          type: string
+          example: "Your order has been placed successfully!"
+          description: "Main notification message"
+        noti_options:
+          oneOf:
+            - type: string
+            - type: object
+          example: {"orderId": "fd921a7b-e4c8-4b7f-b863-a34c128ec654"}
+          description: "Additional data for the notification (order ID, product ID, etc.)"
+        noti_status:
+          type: string
+          enum: ["SEND", "PENDING", "FAILED", "SUCCESS", "UNREAD", "READ"]
+          example: "UNREAD"
+          description: "Current status of the notification"
+        createTimestamp:
+          type: string
+          format: date-time
+          example: "2025-04-15T10:30:00Z"
+        updateTimestamp:
+          type: string
+          format: date-time
+          example: "2025-04-15T10:30:00Z"
+    
     #ROLE
     Role:
       type: string

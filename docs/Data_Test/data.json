@@ -165,5 +165,20 @@
         ]
       }
     ]
+  },
+  "data_test_noti": {
+    "product_name": "Test Shirt Notification",
+    "product_thumbnail": "https://example.com/images/tshirt.jpg",
+    "product_description": "Comfortable cotton t-shirt for summer",
+    "product_price": 199000,
+    "product_quantity": 100,
+    "product_type": "Clothing",
+    "product_shop": "984c06d4-e035-4308-9014-2eabaa78faf0",
+    "product_attribute": {
+      "brand": "Fashion Brand",
+      "size": "M",
+      "material": "Cotton"
+    },
+    "product_ratingAverage": 0
   }
 }
