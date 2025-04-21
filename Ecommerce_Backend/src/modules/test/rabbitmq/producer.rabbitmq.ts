@@ -1,6 +1,9 @@
 // import amqplib from 'amqplib'
 
 import { rabbitMQ } from '~/base/rabbitmq'
+import { Logger } from '~/base/common/utils'
+
+const logger = new Logger('RabbitMQ Producer')
 
 const runProducer = async () => {
   try {
@@ -22,9 +25,10 @@ const runProducer = async () => {
     // Publish message to queue
     // sendToQueue: là để gửi message vào queue
     // Buffer.from: là để chuyển đổi message thành buffer -> tiết kiệm bộ nhớ
+    logger.info(`Sending message to queue ${queueName}...`)
     channel.sendToQueue(queueName, Buffer.from('Hello, ShopDev by Trong'))
   } catch (error) {
-    console.log(`Error in producer: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(`Error in producer: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 

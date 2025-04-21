@@ -64,6 +64,26 @@ class RabbitMQ {
       }, this.TIMEOUT)
     }
   }
+
+  public async consumerQueue(queueName: string): Promise<void> {
+    try {
+      // assertQueue: create queue if it doesn't exist in channel
+      // durable: true means the queue will survive a server restart
+      await this.channel?.assertQueue(queueName, { durable: true })
+
+      this.logger.info(`Waiting for messages in ${queueName}...`)
+      // consume: receive messages from the queue
+      this.channel?.consume(
+        queueName,
+        (msg) => {
+          this.logger.warn(`Received message: ${msg?.content.toString()}`)
+        },
+        { noAck: true } // noAck: true means the message will be removed from the queue immediately after being received
+      )
+    } catch (error) {
+      this.logger.error(`Error consuming queue ${queueName}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
 }
 
 const connectToRabbitMQTest = async () => {

@@ -10,7 +10,7 @@ import { HttpExceptionHandler } from '~/base/common/handlers'
 import { configSwagger } from '~/base/swagger'
 import { rabbitMQ } from './base/rabbitmq'
 import { runProducer } from './modules/test/rabbitmq/producer.rabbitmq'
-import { runConsumer } from './modules/test/rabbitmq/consumer.rabbitmq'
+// import { runConsumer } from './modules/test/rabbitmq/consumer.rabbitmq'
 
 const bootstrap = async () => {
   const app = express()
@@ -37,13 +37,13 @@ const bootstrap = async () => {
 
   // test RabbitMQ connection with producer and consumer
   // catch: ensure that the producer is running even if there is an error
-  runProducer().catch((error) => {
+  await runProducer().catch((error) => {
     console.error('Error running producer:', error)
   })
 
-  runConsumer().catch((error) => {
-    console.error('Error running Consumer:', error)
-  })
+  // await runConsumer().catch((error) => {
+  //   console.error('Error running Consumer:', error)
+  // })
 
   // Route cơ bản
   app.use('/v1/api', appRouter)
