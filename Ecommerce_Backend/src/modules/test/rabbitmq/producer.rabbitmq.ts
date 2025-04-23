@@ -32,6 +32,4 @@ const runProducer = async () => {
   }
 }
 
-
-
 export { runProducer }

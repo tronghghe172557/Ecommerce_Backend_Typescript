@@ -15,8 +15,11 @@ const bootstrap = async () => {
   Database.getInstance()
 
   // create queue
-  const queueName = 'test-topic'
-  await MessageService.consumerReceived(queueName)
+  // const queueName = 'test-topic'
+  // await MessageService.consumerReceived(queueName)
+  const queueName = 'notiQueueProcess'
+  await MessageService.consumerToQueueNormal(queueName)
+  await MessageService.consumerToQueueFailed(queueName)
 
   // Chạy server
   const PORT = envVariables.PORT || 3000

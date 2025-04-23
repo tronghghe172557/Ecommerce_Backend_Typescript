@@ -9,7 +9,8 @@ import { envVariables, Logger } from '~/base/common/utils'
 import { HttpExceptionHandler } from '~/base/common/handlers'
 import { configSwagger } from '~/base/swagger'
 import { rabbitMQ } from './base/rabbitmq'
-import { runProducer } from './modules/test/rabbitmq/producer.rabbitmq'
+// import { runProducer } from './modules/test/rabbitmq/producer.rabbitmq'
+import { runProducerDLX } from './modules/test/rabbitmq/producerDLX'
 // import { runConsumer } from './modules/test/rabbitmq/consumer.rabbitmq'
 
 const bootstrap = async () => {
@@ -37,7 +38,11 @@ const bootstrap = async () => {
 
   // test RabbitMQ connection with producer and consumer
   // catch: ensure that the producer is running even if there is an error
-  await runProducer().catch((error) => {
+  // await runProducer().catch((error) => {
+  //   console.error('Error running producer:', error)
+  // })
+
+  await runProducerDLX().catch((error) => {
     console.error('Error running producer:', error)
   })
 
