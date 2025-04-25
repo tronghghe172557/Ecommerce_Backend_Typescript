@@ -42,6 +42,7 @@ export class MessageService {
         }
       )
 
+      // 1. TTL
       /*
         const timeExpired = 15000 // 15s
         setTimeout(() => {
@@ -56,6 +57,40 @@ export class MessageService {
           )
         }, timeExpired)
       */
+
+      // LOGIC
+
+      channel.consume(notiQueue, (msg) => {
+        try {
+          // in order to simulate a failure ( simulate: mô phỏng )
+          const numberTest = Math.random()
+          console.log(`numberTest: ${numberTest}`)
+          if (numberTest < 0.8) {
+            throw new Error('Simulated error') // simulate an error
+          }
+
+          console.log(`Received message: ${msg?.content.toString()}`)
+        } catch (error) {
+          console.log(`Error processing message: ${error instanceof Error ? error.message : String(error)}`)
+          // 2. DLX
+          channel.nack(msg!, false, false) // ! ensure that msg is type of Message
+          /*
+            nack: negative acknowLedge: xác nhận tiêu cực
+            tự động thiết lập với 1 queue: deadLetterExchange: notiExDLX
+            Tin nhắn sẽ được tự động chuyển đến Dead Letter Exchange 
+            với routing key được chỉ định trong notiRoutingKeyDLX.
+
+            RabbitMQ biết tìm đến queue notiQueueHotFix vì:
+
+            Tin nhắn bị reject từ queue chính
+            Queue chính được cấu hình để chuyển 
+              tin nhắn bị reject đến exchange notiExDLX với routing key notiRoutingKeyDLX
+            Queue notiQueueHotFix đã được bind với 
+              exchange notiExDLX và routing key notiRoutingKeyDLX  
+
+          */
+        }
+      })
     } catch (error) {
       console.log(`Error consuming queue ${queueName}: ${error instanceof Error ? error.message : String(error)}`)
     }
