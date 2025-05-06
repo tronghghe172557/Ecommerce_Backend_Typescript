@@ -2,8 +2,9 @@ import express from 'express'
 
 import { rabbitMQ } from './dbs'
 import Database from './dbs/init.mongodb'
-import { MessageService } from './services/consumerQueue.service'
 import { envVariables, Logger } from './common/utils'
+import { producerOrderedMessagequeue } from './services/ordered-producer.service'
+import { consumerOrderedMessagequeue } from './services/ordered-consumer.service'
 
 const bootstrap = async () => {
   const app = express()
@@ -17,9 +18,13 @@ const bootstrap = async () => {
   // create queue
   // const queueName = 'test-topic'
   // await MessageService.consumerReceived(queueName)
-  const queueName = 'notiQueueProcess'
-  await MessageService.consumerToQueueNormal(queueName)
-  await MessageService.consumerToQueueFailed(queueName)
+  // const queueName = 'notiQueueProcess'
+  // await MessageService.consumerToQueueNormal(queueName)
+  // await MessageService.consumerToQueueFailed(queueName)
+
+  await producerOrderedMessagequeue()
+
+  await consumerOrderedMessagequeue()
 
   // Chạy server
   const PORT = envVariables.PORT || 3000

@@ -21,7 +21,7 @@ export class MessageService {
         throw new Error('Failed to create RabbitMQ channel')
       }
 
-      const notiQueue = 'notiQueueProcess'
+      const notiQueue = queueName
       /*
         Error consuming queue notiQueueProcess: Operation failed: 
         QueueDeclare; 406 (PRECONDITION-FAILED) with message "PRECONDITION_FAILED 
@@ -32,15 +32,15 @@ export class MessageService {
         -> await rabbitMQ.consumerQueue(queueName)
           -> khi dùng hàm kia m lại tạo lại queue với các tham số khác -> lỗi
       */
-      channel.consume(
-        notiQueue,
-        (msg) => {
-          console.log(`Received message: ${msg?.content.toString()}`)
-        },
-        {
-          noAck: true // noAck: true means the message will be removed from the queue immediately after being received
-        }
-      )
+      // channel.consume(
+      //   notiQueue,
+      //   (msg) => {
+      //     console.log(`Received message: ${msg?.content.toString()}`)
+      //   },
+      //   {
+      //     noAck: true // noAck: true means the message will be removed from the queue immediately after being received
+      //   }
+      // )
 
       // 1. TTL
       /*
@@ -79,6 +79,12 @@ export class MessageService {
             tự động thiết lập với 1 queue: deadLetterExchange: notiExDLX
             Tin nhắn sẽ được tự động chuyển đến Dead Letter Exchange 
             với routing key được chỉ định trong notiRoutingKeyDLX.
+            allUpto: dùng để từ chối các tin nhắn bị lỗi
+             - true: từ chối tất cả tin nhắn bị lỗi ( thường là lỗi nghiêm trọng )
+             - false: chỉ từ chối tin nhắn hiện tại
+            requeue: tin nhắn bị từ chối sẽ được đưa lại vào queue lần nữa hay ko ?
+             - true: đưa lại vào queue
+             - false: ko đưa lại vào queue mà đưa thẳng vào DLX
 
             RabbitMQ biết tìm đến queue notiQueueHotFix vì:
 
@@ -87,7 +93,6 @@ export class MessageService {
               tin nhắn bị reject đến exchange notiExDLX với routing key notiRoutingKeyDLX
             Queue notiQueueHotFix đã được bind với 
               exchange notiExDLX và routing key notiRoutingKeyDLX  
-
           */
         }
       })
