@@ -6,7 +6,7 @@ import { IShop, ShopModel, KeyTokenModel } from '~/modules/auth/models'
 import crypto from 'crypto'
 import { KeyTokenService } from '~/modules/auth/services'
 import { BadRequestException, UnauthorizedException } from '~/base/common/exceptions'
-import { createKeyTokenPair } from '~/modules/auth/utils'
+import { createKeyTokenPair, JWTUtils } from '~/modules/auth/utils'
 import {
   LoginRequestDto,
   LoginSuccessDto,
@@ -183,6 +183,16 @@ class AccessService {
         refreshToken: tokens.refreshToken
       }
     }
+  }
+
+  static async blacklistToken(token: string) {
+    const { exp } = JWTUtils.decodeToken(token)
+    console.log(`AccessService - exp: ${exp}`)
+    await redis.getInstance().set(token, this.BLACKLISTED, 'EX', exp!)
+  }
+
+  static async isTokenBlacklisted(token: string): Promise<boolean> {
+    return (await redis.getInstance().get(token)) === this.BLACKLISTED
   }
 }
 

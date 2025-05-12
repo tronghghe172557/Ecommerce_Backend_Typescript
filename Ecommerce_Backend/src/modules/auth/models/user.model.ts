@@ -1,19 +1,19 @@
 import mongoose, { Schema, Model } from 'mongoose'
 import { BaseModel, baseModelSchemaDefinition } from '~/base/common/models'
-import { AuthRoleEnum } from '~/modules/auth/enums'
+import { AuthEnum, AuthRoleEnum } from '~/modules/auth/enums'
 
 // định nghĩa dữ liệu cho shop
-export interface IShop extends BaseModel {
+export interface IUser extends BaseModel {
   name: string
   email: string
   password: string
-  status: 'active' | 'inactive'
+  status: AuthEnum.ACTIVE | AuthEnum.INACTIVE
   verify: boolean
   roles: string[]
 }
 
 // Khai báo Schema với TypeScript => Giúp TypeScript kiểm tra field & type
-const shopSchema: Schema<IShop> = new Schema({
+const userSchema: Schema<IUser> = new Schema({
   ...baseModelSchemaDefinition,
   name: {
     type: String,
@@ -33,8 +33,8 @@ const shopSchema: Schema<IShop> = new Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'inactive'],
-    default: 'inactive'
+    enum: Object.values(AuthEnum),
+    default: AuthEnum.ACTIVE
   },
   verify: {
     type: Boolean,
@@ -42,9 +42,9 @@ const shopSchema: Schema<IShop> = new Schema({
   },
   roles: {
     type: [String], // Định rõ roles là mảng string
-    default: [AuthRoleEnum.SHOP]
+    default: [AuthRoleEnum.USER]
   }
 })
 
 // Xuất Model với TypeScript Generics
-export const ShopModel: Model<IShop> = mongoose.model<IShop>('Shops', shopSchema)
+export const UserModel: Model<IUser> = mongoose.model<IUser>('users', userSchema)

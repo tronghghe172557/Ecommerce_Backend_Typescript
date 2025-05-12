@@ -1,12 +1,14 @@
 import { Request, Response, NextFunction } from 'express'
-import { IApiKey, KeyTokenModel } from '~/modules/auth/models'
+import { IApiKey, KeyTokenModel, ShopModel } from '~/modules/auth/models'
 import { asyncHandler } from '~/base/common/handlers'
-import { BadRequestException, NotFoundException } from '~/base/common/exceptions'
+import { BadRequestException, NotFoundException, UnauthorizedException } from '~/base/common/exceptions'
 import jwt from 'jsonwebtoken'
 import { getHeader } from './helper.util'
-import { findApiKeyByKey } from '~/modules/auth/services'
-import { verifyToken } from '~/modules/auth/utils'
+import { AccessService, findApiKeyByKey } from '~/modules/auth/services'
+import { JWTUtils, verifyToken } from '~/modules/auth/utils'
 import { Logger } from './logger.util'
+import { AuthRoleEnum } from '~/modules/auth/enums'
+import { UserModel } from '~/modules/auth/models/user.model'
 
 const logger = new Logger('check-auth.utils')
 export interface IHeader {
@@ -166,4 +168,64 @@ const AuthGuard = asyncHandler(async (req: Request, res: Response, next: NextFun
   }
 })
 
-export { apiKey, permission, AuthGuard }
+/* 
+  AuthGuard v2 
+  1. Check token exist 
+    1.1 Access token exist -> verify access token -> handle access token
+    1.2 If access token expired->  Check refresh token exist -> handle refresh token -> return new access token
+  
+  2. Check userId exist
+  3. Check role
+*/
+const AuthGuardV2 =
+  (allowRoles: AuthRoleEnum[] = Object.values(AuthRoleEnum)) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      // 1. Get token
+      const bearerToken = req.headers[HEADER.AUTHORIZATION]?.toString()
+      if (!bearerToken) {
+        throw new BadRequestException('Access token is required')
+      }
+
+      // 2. payload from access token
+      const jwtToken = bearerToken.replace('Bearer ', '')
+
+      if (!AccessService.isTokenBlacklisted(jwtToken)) {
+        throw new UnauthorizedException('Token is blacklisted')
+      }
+
+      const { sub: userId, role } = await JWTUtils.verifyAccessToken(jwtToken, jwtToken)
+
+      // 3. find accessToken and refressToken in keyStore from db
+      if (!allowRoles.includes(role!)) {
+        throw new UnauthorizedException('Permission Denied')
+      }
+
+      // 4. type shop
+      if (role === AuthRoleEnum.SHOP || role === AuthRoleEnum.ADMIN) {
+        const shop = await ShopModel.findOne({ _id: userId }).exec()
+
+        if (!shop) {
+          throw new NotFoundException('Shop not found')
+        }
+
+        req.shop = shop
+      }
+
+      // 5. type là user
+      const user = await UserModel.findOne({ _id: userId }).exec()
+
+      if (!user) {
+        throw new NotFoundException('User not found')
+      }
+
+      req.userObj = user
+
+      return next()
+    } catch (error) {
+      logger.error(`Error in AuthGuardV2: ${error instanceof Error && error.message}`)
+      throw new BadRequestException(`Error in AuthGuardV2: ${error instanceof Error && error.message}`)
+    }
+  }
+
+export { apiKey, permission, AuthGuard, AuthGuardV2 }
