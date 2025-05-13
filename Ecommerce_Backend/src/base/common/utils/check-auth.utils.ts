@@ -183,26 +183,45 @@ const AuthGuardV2 =
     try {
       // 1. Get token
       const bearerToken = req.headers[HEADER.AUTHORIZATION]?.toString()
+      const xClientId = req.headers[HEADER.CLIENT_ID]?.toString() // ~ shopId / userId
+      if (!xClientId) {
+        throw new BadRequestException('Client ID is required')
+      }
+
       if (!bearerToken) {
         throw new BadRequestException('Access token is required')
       }
 
       // 2. payload from access token
       const jwtToken = bearerToken.replace('Bearer ', '')
+      console.log('jwtToken - req', jwtToken)
 
       if (!AccessService.isTokenBlacklisted(jwtToken)) {
         throw new UnauthorizedException('Token is blacklisted')
       }
 
-      const { sub: userId, role } = await JWTUtils.verifyAccessToken(jwtToken, jwtToken)
+      const keyStore = await KeyTokenModel.findOne({ user: xClientId }).exec()
+      console.log('keyStore - pub', keyStore?.publicKey)
 
-      // 3. find accessToken and refressToken in keyStore from db
-      if (!allowRoles.includes(role!)) {
-        throw new UnauthorizedException('Permission Denied')
+      if (!keyStore) {
+        throw new NotFoundException('KeyStore not found')
+      }
+
+      const { _id: userId, role } = JWTUtils.verifyAccessToken(jwtToken, keyStore.publicKey)
+      console.log('userId', userId)
+      console.log('role', role)
+
+      // 3. find accessToken and refresh Token in keyStore from db
+      if (role) {
+        const hasValidRole = allowRoles.some((item) => role.includes(item))
+
+        if (!hasValidRole) {
+          throw new UnauthorizedException('Permission Denied')
+        }
       }
 
       // 4. type shop
-      if (role === AuthRoleEnum.SHOP || role === AuthRoleEnum.ADMIN) {
+      if (role?.includes(AuthRoleEnum.SHOP) || role?.includes(AuthRoleEnum.ADMIN)) {
         const shop = await ShopModel.findOne({ _id: userId }).exec()
 
         if (!shop) {
@@ -210,16 +229,20 @@ const AuthGuardV2 =
         }
 
         req.shop = shop
+        req.user = userId
+        req.keyStore = keyStore!
+      } else {
+        // 5. type là user
+        const user = await UserModel.findOne({ _id: userId }).exec()
+
+        if (!user) {
+          throw new NotFoundException('User not found')
+        }
+
+        req.userObj = user
+        req.user = userId
+        req.keyStore = keyStore!
       }
-
-      // 5. type là user
-      const user = await UserModel.findOne({ _id: userId }).exec()
-
-      if (!user) {
-        throw new NotFoundException('User not found')
-      }
-
-      req.userObj = user
 
       return next()
     } catch (error) {

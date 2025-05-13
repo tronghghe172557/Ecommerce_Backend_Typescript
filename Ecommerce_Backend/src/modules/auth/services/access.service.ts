@@ -51,6 +51,9 @@ class AccessService {
       refreshToken: tokens?.refreshToken
     })
 
+    console.log('login - access', tokens.accessToken)
+    console.log('login - public', publicKey)
+
     return {
       data: {
         id: foundShop._id as string,

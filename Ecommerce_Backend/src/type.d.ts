@@ -8,7 +8,7 @@ declare global {
     interface Request {
       objKey?: IApiKey
       keyStore?: IKeyToken
-      user?: IDecodedUser
+      user?: IDecodedUser | string
       refreshToken?: string | undefined
       shop?: IShop
       userObj?: IUser

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { asyncHandler } from '~/base/common/handlers'
-import { AuthGuard } from '~/base/common/utils'
+import { AuthGuard, AuthGuardV2 } from '~/base/common/utils'
+import { AuthRoleEnum } from '~/modules/auth/enums'
 import { ProductController } from '~/modules/products/controllers'
 const productRouter = Router()
 
@@ -24,7 +25,8 @@ productRouter.get('/unpublish-product', AuthGuard, asyncHandler(ProductControlle
 productRouter.get('/:productId', asyncHandler(ProductController.getProductById))
 
 // AuthGuard
-productRouter.use(AuthGuard)
+productRouter.use(asyncHandler(AuthGuardV2([AuthRoleEnum.ADMIN, AuthRoleEnum.SHOP])))
+
 productRouter.post('', asyncHandler(ProductController.createProduct))
 
 productRouter.put('/:productId', asyncHandler(ProductController.updateProduct))
