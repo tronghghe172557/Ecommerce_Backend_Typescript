@@ -13,6 +13,14 @@ export class AccessController {
   }
 
   /**
+   * `[POST] /api/v1/auth/signUp for shop
+   */
+  static signUpForShop = async (req: Request, res: Response) => {
+    const dto = signupRequestDto.parse(req.body)
+    res.status(HttpStatusCode.CREATED).json(await AccessService.signUpForShop(dto))
+  }
+
+  /**
    * `[POST] /api/v1/auth/login`
    */
   static login = async (req: Request, res: Response) => {

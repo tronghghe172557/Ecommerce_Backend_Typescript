@@ -1,9 +1,9 @@
-import { IHandleRefreshToken } from './../types'
-import { roleShop } from '~/base/common/enums'
-import { createShop, findShopByEmail } from '~/modules/auth/models'
 import bcrypt from 'bcrypt'
-import { IShop, ShopModel, KeyTokenModel } from '~/modules/auth/models'
 import crypto from 'crypto'
+
+import { IHandleRefreshToken } from './../types'
+import { createShop, findShopByEmail } from '~/modules/auth/models'
+import { IShop, ShopModel, KeyTokenModel } from '~/modules/auth/models'
 import { KeyTokenService } from '~/modules/auth/services'
 import { BadRequestException, UnauthorizedException } from '~/base/common/exceptions'
 import { createKeyTokenPair, JWTUtils } from '~/modules/auth/utils'
@@ -16,6 +16,7 @@ import {
 } from '~/modules/auth/dtos'
 import { SuccessResponseBody } from '~/base/common/types'
 import { redis } from '~/base/redis'
+import { AuthRoleEnum } from '~/modules/auth/enums'
 // Promise<void> => Hàm không trả về giá trị
 class AccessService {
   private static readonly BLACKLISTED = 'BLACKLISTED'
@@ -51,9 +52,6 @@ class AccessService {
       refreshToken: tokens?.refreshToken
     })
 
-    console.log('login - access', tokens.accessToken)
-    console.log('login - public', publicKey)
-
     return {
       data: {
         id: foundShop._id as string,
@@ -64,11 +62,10 @@ class AccessService {
     }
   }
 
-  static signUp = async ({
-    name,
-    email,
-    password
-  }: SignupRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
+  static signUp = async (
+    { name, email, password }: SignupRequestDto,
+    role = AuthRoleEnum.USER
+  ): Promise<SuccessResponseBody<LoginSuccessDto>> => {
     // 1. Check email
     const holderShop = await findShopByEmail(email)
     if (holderShop) {
@@ -78,14 +75,17 @@ class AccessService {
     // 2. Hash password
     const passwordHash = bcrypt.hashSync(password, 10)
     // 3. Create shop
+    console.log(role)
     const newShop: IShop | null = await createShop(
       new ShopModel({
         name,
         email,
         password: passwordHash,
-        role: roleShop.SHOP
+        role: role
       })
     )
+
+    console.log('newShop', newShop)
 
     if (newShop) {
       const privateKey = crypto.randomBytes(32).toString('hex')
@@ -124,6 +124,14 @@ class AccessService {
     }
 
     throw new BadRequestException('Error: Shop creation failed')
+  }
+
+  static signUpForShop = async ({
+    name,
+    email,
+    password
+  }: SignupRequestDto): Promise<SuccessResponseBody<LoginSuccessDto>> => {
+    return await this.signUp({ name, email, password }, AuthRoleEnum.SHOP)
   }
 
   static logout = async (keyId: string): Promise<void> => {

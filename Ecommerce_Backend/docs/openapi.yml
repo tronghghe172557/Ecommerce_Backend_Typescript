@@ -50,7 +50,7 @@ paths:
           description: Username or password is incorrect
   /v1/api/auth/signUp:
     post:
-      summary: Sign up for a new account
+      summary: Sign up for a new user account
       tags:
         - auth
       requestBody:
@@ -61,7 +61,7 @@ paths:
               $ref: "#/components/schemas/SignupRequestDto"
       responses:
         "201":
-          description: Account created successfully
+          description: User Account created successfully
           content:
             application/json:
               schema:
@@ -71,6 +71,30 @@ paths:
                     $ref: "#/components/schemas/SignupSuccessDto"
         "400":
           description: Invalid input data
+  /v1/api/auth/signUpForShop:
+    post:
+      summary: Sign up for a new shop account
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupRequestDto"
+      responses:
+        "201":
+          description: Shop Account created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SignupSuccessDto"
+        "400":
+          description: Invalid input data
+  
   /v1/api/auth/logout:
     get:
       summary: Logout from the system

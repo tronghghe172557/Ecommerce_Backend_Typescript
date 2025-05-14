@@ -6,6 +6,7 @@ import { AccessController } from '~/modules/auth/controllers'
 export const authRouter = Router()
 
 authRouter.post('/signUp', asyncHandler(AccessController.signUp))
+authRouter.post('/signUpForShop', asyncHandler(AccessController.signUpForShop))
 authRouter.post('/login', asyncHandler(AccessController.login))
 
 authRouter.use(AuthGuard)

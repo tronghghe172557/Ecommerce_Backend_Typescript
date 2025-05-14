@@ -42,7 +42,7 @@ const shopSchema: Schema<IShop> = new Schema({
   },
   roles: {
     type: [String], // Định rõ roles là mảng string
-    default: [AuthRoleEnum.SHOP]
+    default: [AuthRoleEnum.USER] // Giá trị mặc định là mảng chứa 1 phần tử là USER
   }
 })
 

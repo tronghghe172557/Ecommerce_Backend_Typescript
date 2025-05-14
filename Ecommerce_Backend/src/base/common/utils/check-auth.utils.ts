@@ -194,14 +194,12 @@ const AuthGuardV2 =
 
       // 2. payload from access token
       const jwtToken = bearerToken.replace('Bearer ', '')
-      console.log('jwtToken - req', jwtToken)
 
       if (!AccessService.isTokenBlacklisted(jwtToken)) {
         throw new UnauthorizedException('Token is blacklisted')
       }
 
       const keyStore = await KeyTokenModel.findOne({ user: xClientId }).exec()
-      console.log('keyStore - pub', keyStore?.publicKey)
 
       if (!keyStore) {
         throw new NotFoundException('KeyStore not found')
