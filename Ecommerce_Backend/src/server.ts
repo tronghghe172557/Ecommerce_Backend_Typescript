@@ -10,7 +10,7 @@ import { HttpExceptionHandler } from '~/base/common/handlers'
 import { configSwagger } from '~/base/swagger'
 import { rabbitMQ } from './base/rabbitmq'
 // import { runProducer } from './modules/test/rabbitmq/producer.rabbitmq'
-import { runProducerDLX } from './modules/test/rabbitmq/producerDLX'
+// import { runProducerDLX } from './modules/test/rabbitmq/producerDLX'
 // import { runConsumer } from './modules/test/rabbitmq/consumer.rabbitmq'
 
 const bootstrap = async () => {
@@ -42,9 +42,9 @@ const bootstrap = async () => {
   //   console.error('Error running producer:', error)
   // })
 
-  await runProducerDLX().catch((error) => {
-    console.error('Error running producer:', error)
-  })
+  // await runProducerDLX().catch((error) => {
+  //   console.error('Error running producer:', error)
+  // })
 
   // await runConsumer().catch((error) => {
   //   console.error('Error running Consumer:', error)

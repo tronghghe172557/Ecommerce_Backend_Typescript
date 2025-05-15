@@ -21,7 +21,7 @@ import { UpdateProductDto } from '~/modules/products/dtos'
 import { updateNestedObjectParse } from '../utils'
 import { pushNotiToSystem } from '~/modules/Notification/services'
 import { NotificationType } from '~/modules/Notification/enums'
-
+import { MessageQueueUtils } from '~/base/common/utils'
 export class ProductFactory {
   // OPTIMIZE: Refactor this method to use a factory pattern
   static productRegistry: Record<string, typeof Product> = {}
@@ -212,6 +212,7 @@ class Product {
   public product_variants?: []
   public isDraft?: boolean
   public isPublished?: boolean
+  private messageQueueUtils = new MessageQueueUtils()
 
   constructor({
     product_name,
@@ -239,6 +240,7 @@ class Product {
     const newProduct = await ProductModel.create({ ...this, _id: product_id })
 
     if (newProduct) {
+      // 1. save notification in DB
       pushNotiToSystem({
         noti_type: NotificationType.SHOP_NEW_PRODUCT,
         noti_senderId: this.product_shop,
@@ -256,6 +258,26 @@ class Product {
         .catch((err) => {
           console.log('Push notification failed', err)
         })
+
+      // 2. Add message queue notification for more reliable processing
+      try {
+        const productMsg = JSON.stringify({
+          type: NotificationType.SHOP_NEW_PRODUCT,
+          senderId: this.product_shop,
+          data: {
+            product_id: newProduct._id,
+            product_name: this.product_name,
+            product_shop: this.product_shop,
+            created_at: new Date()
+          }
+        })
+
+        // nếu dùng static method, thì nó trỏ đến class chứ không phải là instance 
+        // -> this.messageQueueUtils không có connection với RabbitMQ được
+        await this.messageQueueUtils.sendMessageWhenNewProduct(productMsg)
+      } catch (error) {
+        throw new BadRequestException(`Error when send message to RabbitMQ in Product class: ${error}`)
+      }
     }
     return newProduct
   }
